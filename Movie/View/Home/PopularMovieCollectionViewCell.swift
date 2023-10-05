@@ -1,5 +1,5 @@
 //
-//  PopularMovieCollectionViewCell.swift
+//  NewReleasesCollectionViewCell.swift
 //  Movie
 //
 //  Created by Elmar Ibrahimli on 03.10.23.
@@ -12,11 +12,10 @@ class PopularMovieCollectionViewCell: UICollectionViewCell {
     
     override init(frame: CGRect) {
         super.init(frame: frame)
-        contentView.backgroundColor = .red
+        contentView.backgroundColor = .yellow
     }
     
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
-    
 }

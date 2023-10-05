@@ -7,8 +7,8 @@
 
 import UIKit
 
-class RecommendedMovieCollectionViewCell: UICollectionViewCell {
-    static let identifier = "RecommendedMovieCollectionViewCell"
+class TopRatedMovieCollectionViewCell: UICollectionViewCell {
+    static let identifier = "TopRatedMovieCollectionViewCell"
     
     override init(frame: CGRect) {
         super.init(frame: frame)
