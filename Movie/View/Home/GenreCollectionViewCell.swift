@@ -12,7 +12,7 @@ class GenreCollectionViewCell: UICollectionViewCell {
     
     private let genreName: UILabel = {
         let label = UILabel()
-        label.textColor = .label
+        label.textColor = .white
         label.textAlignment = .center
         label.numberOfLines = 0
         label.font = .systemFont(ofSize: 12, weight: .bold)
@@ -21,8 +21,7 @@ class GenreCollectionViewCell: UICollectionViewCell {
     
     override init(frame: CGRect) {
         super.init(frame: frame)
-        contentView.layer.borderWidth = 0.5
-        contentView.layer.borderColor = UIColor.lightGray.cgColor
+        contentView.backgroundColor = UIColor(red: 237.0 / 255.0, green:  17.0 / 255.0, blue: 95.0 / 255.0, alpha: 1.00)
         contentView.layer.cornerRadius = 6
         contentView.clipsToBounds = false
         contentView.layer.masksToBounds = false

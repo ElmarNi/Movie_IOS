@@ -33,29 +33,37 @@ class HomeViewController: UIViewController {
             }))
         
         collectionView.register(GenreCollectionViewCell.self, forCellWithReuseIdentifier: GenreCollectionViewCell.identifier)
-        collectionView.register(UpcomingMovieCollectionViewCell.self, forCellWithReuseIdentifier: UpcomingMovieCollectionViewCell.identifier)
-        collectionView.register(PopularMovieCollectionViewCell.self, forCellWithReuseIdentifier: PopularMovieCollectionViewCell.identifier)
+        collectionView.register(MovieCollectionViewCell.self, forCellWithReuseIdentifier: MovieCollectionViewCell.identifier)
+        collectionView.register(MovieCollectionViewCell.self, forCellWithReuseIdentifier: MovieCollectionViewCell.identifier)
         collectionView.register(TopRatedMovieCollectionViewCell.self, forCellWithReuseIdentifier: TopRatedMovieCollectionViewCell.identifier)
         collectionView.register(ForHeaderCollectionReusableView.self, forSupplementaryViewOfKind: UICollectionView.elementKindSectionHeader, withReuseIdentifier: ForHeaderCollectionReusableView.identifier)
         
         return collectionView
     }()
     
+    let spinner: UIActivityIndicatorView = {
+        let spinner = UIActivityIndicatorView()
+        spinner.startAnimating()
+        spinner.hidesWhenStopped = true
+        return spinner
+    }()
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         
         configureSectionsData()
-//        print(sections[0])
         collectionView.delegate = self
         collectionView.dataSource = self
         view.backgroundColor = .systemBackground
         view.addSubview(collectionView)
+        view.addSubview(spinner)
     }
     
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
         collectionView.frame = view.bounds
-//        print(sections[0])
+        spinner.frame = CGRect(x: 0, y: 0, width: 0, height: 0)
+        spinner.center = view.center
     }
 }
 
@@ -81,7 +89,7 @@ extension HomeViewController {
             section.contentInsets = NSDirectionalEdgeInsets(top: 0, leading: 0, bottom: 20, trailing: 0)
             return section
         case 1:
-            //MARK: for popular movies
+            //MARK: for upcoming movies
             
             //item
             let item = NSCollectionLayoutItem(layoutSize: NSCollectionLayoutSize(widthDimension: .fractionalWidth(1),
@@ -108,7 +116,7 @@ extension HomeViewController {
             section.contentInsets = NSDirectionalEdgeInsets(top: 0, leading: 0, bottom: 20, trailing: 0)
             return section
         case 2:
-            //MARK: for new released movies
+            //MARK: for popular movies
             
             //item
             let item = NSCollectionLayoutItem(layoutSize: NSCollectionLayoutSize(widthDimension: .fractionalWidth(1),
@@ -137,7 +145,7 @@ extension HomeViewController {
             section.contentInsets = NSDirectionalEdgeInsets(top: 0, leading: 0, bottom: 20, trailing: 0)
             return section
         default:
-            //MARK: for recommended movies
+            //MARK: for top rated movies
             
             //item
             let item = NSCollectionLayoutItem(layoutSize: NSCollectionLayoutSize(widthDimension: .fractionalWidth(1),
@@ -147,7 +155,7 @@ extension HomeViewController {
             
             //group
             let group = NSCollectionLayoutGroup.horizontal(layoutSize: NSCollectionLayoutSize(widthDimension: .fractionalWidth(1),
-                                                                                              heightDimension: .absolute(80)),
+                                                                                              heightDimension: .absolute(120)),
                                                            subitems: [item])
             
             //section
@@ -190,7 +198,7 @@ extension HomeViewController {
             case .success(let data):
                 genres = data.genres
             case .failure(_):
-                break
+                self?.showError(alertTitle: "Error", message: "Can't get genres", actionTitle: "OK")
             }
         }
         
@@ -202,7 +210,7 @@ extension HomeViewController {
             case .success(let data):
                 upcomingMovies = data.results
             case .failure(_):
-                break
+                self?.showError(alertTitle: "Error", message: "Can't get upcoming movies", actionTitle: "OK")
             }
         }
         
@@ -214,7 +222,7 @@ extension HomeViewController {
             case .success(let data):
                 popularMovies = data.results
             case .failure(_):
-                break
+                self?.showError(alertTitle: "Error", message: "Can't get popular movies", actionTitle: "OK")
             }
         }
         
@@ -226,7 +234,7 @@ extension HomeViewController {
             case .success(let data):
                 topRatedMovies = data.results
             case .failure(_):
-                break
+                self?.showError(alertTitle: "Error", message: "Can't get top rated movies", actionTitle: "OK")
             }
         }
         
@@ -236,6 +244,7 @@ extension HomeViewController {
             self?.sections.append(Section.PopularMovies(data: popularMovies))
             self?.sections.append(Section.TopRatedMovies(data: topRatedMovies))
             self?.collectionView.reloadData()
+            self?.spinner.stopAnimating()
         }
         
     }
@@ -270,18 +279,18 @@ extension HomeViewController: UICollectionViewDataSource, UICollectionViewDelega
             }
         case .UpcomingMovies(let movies):
             if let cell = collectionView.dequeueReusableCell(
-                withReuseIdentifier: UpcomingMovieCollectionViewCell.identifier,
-                for: indexPath) as? UpcomingMovieCollectionViewCell
+                withReuseIdentifier: MovieCollectionViewCell.identifier,
+                for: indexPath) as? MovieCollectionViewCell
             {
                 cell.configure(movie: movies[indexPath.row])
                 return cell
             }
         case .PopularMovies(let movies):
             if let cell = collectionView.dequeueReusableCell(
-                withReuseIdentifier: PopularMovieCollectionViewCell.identifier,
-                for: indexPath) as? PopularMovieCollectionViewCell
+                withReuseIdentifier: MovieCollectionViewCell.identifier,
+                for: indexPath) as? MovieCollectionViewCell
             {
-                
+                cell.configure(movie: movies[indexPath.row])
                 return cell
             }
         case .TopRatedMovies(let movies):
@@ -289,7 +298,7 @@ extension HomeViewController: UICollectionViewDataSource, UICollectionViewDelega
                 withReuseIdentifier: TopRatedMovieCollectionViewCell.identifier,
                 for: indexPath) as? TopRatedMovieCollectionViewCell
             {
-                
+                cell.configure(movie: movies[indexPath.row])
                 return cell
             }
         }
@@ -313,5 +322,21 @@ extension HomeViewController: UICollectionViewDataSource, UICollectionViewDelega
             }
         }
         return UICollectionReusableView()
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+        switch sections[indexPath.section] {
+        case .Genre(let genres):
+            let genre = genres[indexPath.row]
+            let moviesVC = MoviesViewController(genreId: genre.id)
+            moviesVC.title = genre.name
+            navigationController?.pushViewController(moviesVC, animated: true)
+        case .UpcomingMovies(let movies):
+            let movie = movies[indexPath.row]
+        case .PopularMovies(let movies):
+            let movie = movies[indexPath.row]
+        case .TopRatedMovies(let movies):
+            let movie = movies[indexPath.row]
+        }
     }
 }

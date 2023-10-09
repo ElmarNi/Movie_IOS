@@ -13,12 +13,14 @@ class TabBarController: UITabBarController {
     private let searchVC = SearchViewController()
     override func viewDidLoad() {
         super.viewDidLoad()
-        
-        let navigationBarAppearance = UINavigationBar.appearance()
-        let tabBarAppearance = UITabBar.appearance()
-        navigationBarAppearance.tintColor = .label
-        navigationBarAppearance.prefersLargeTitles = false
-        tabBarAppearance.tintColor = .label
+
+        UINavigationBar.appearance().tintColor = .label
+        UINavigationBar.appearance().prefersLargeTitles = false
+        UITabBar.appearance().tintColor = .label
+        let tabBarAppearance = UITabBarAppearance()
+        tabBarAppearance.configureWithDefaultBackground()
+        tabBar.standardAppearance = tabBarAppearance
+        tabBar.scrollEdgeAppearance = tabBarAppearance
         
         homeVC.title = "Home"
         let homeNavVC = UINavigationController(rootViewController: homeVC)

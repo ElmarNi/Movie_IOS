@@ -114,6 +114,28 @@ final class ApiCaller {
         }
     }
     
+    public func getMoviesByGenreId(with genreId: Int, page: Int, sessionDelegate: URLSessionDelegate, completion: @escaping (Result<CommonMovie, ApiError>) -> Void) {
+        createRequest(with: URL(string: "https://api.themoviedb.org/3/discover/movie?include_adult=false&include_video=false&language=en-US&page=1&sort_by=popularity.desc&with_genres=\(genreId)"), type: .GET) { request in
+            URLSession(
+                configuration: URLSessionConfiguration.default,
+                delegate: sessionDelegate,
+                delegateQueue: OperationQueue.main).dataTask(with: request) { data, _, error in
+                if let data = data, error == nil {
+                    do{
+                        let movies = try JSONDecoder().decode(CommonMovie.self, from: data)
+                        completion(.success(movies))
+                    }
+                    catch {
+                        completion(.failure(ApiError("Failed get data")))
+                    }
+                }
+                else {
+                    completion(.failure(ApiError("Failed get data")))
+                }
+            }.resume()
+        }
+    }
+    
     private func createRequest(with url: URL?, type: HTTPMethod, completion: @escaping (URLRequest) -> Void) {
         if let url = url {
             var request = URLRequest(url: url)

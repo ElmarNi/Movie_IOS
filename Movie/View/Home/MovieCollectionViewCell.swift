@@ -1,18 +1,18 @@
 //
-//  PopularMovieCollectionViewCell.swift
+//  MovieCollectionViewCell.swift
 //  Movie
 //
-//  Created by Elmar Ibrahimli on 03.10.23.
+//  Created by Elmar Ibrahimli on 09.10.23.
 //
 
 import UIKit
 
-class UpcomingMovieCollectionViewCell: UICollectionViewCell {
-    static let identifier = "UpcomingMovieCollectionViewCell"
+class MovieCollectionViewCell: UICollectionViewCell {
+    static let identifier = "MovieCollectionViewCell"
     
     private let coverImage: UIImageView = {
         let imageView = UIImageView()
-        imageView.contentMode = .scaleAspectFit
+        imageView.contentMode = .scaleToFill
         imageView.layer.cornerRadius = 4
         imageView.clipsToBounds = true
         return imageView
