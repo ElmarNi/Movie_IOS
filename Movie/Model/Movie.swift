@@ -9,7 +9,7 @@ import Foundation
 
 struct Movie: Codable {
     let adult: Bool
-    let backdrop_path: String
+    let backdrop_path: String?
     let genre_ids: [Int]
     let id: Int
     let original_language: String

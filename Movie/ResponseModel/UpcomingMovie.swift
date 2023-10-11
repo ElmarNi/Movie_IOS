@@ -8,7 +8,7 @@
 import Foundation
 
 struct UpcomingMovie: Codable {
-    let dates: [String : String]
+//    let dates: [String : String]
     let page: Int
     let results: [Movie]
     let total_pages: Int

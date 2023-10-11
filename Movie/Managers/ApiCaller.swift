@@ -54,9 +54,11 @@ final class ApiCaller {
                 configuration: URLSessionConfiguration.default,
                 delegate: sessionDelegate,
                 delegateQueue: OperationQueue.main).dataTask(with: request) { data, _, error in
+                    print("https://api.themoviedb.org/3/movie/upcoming?language=en-US&page=\(page)")
                 if let data = data, error == nil {
                     do{
                         let movies = try JSONDecoder().decode(UpcomingMovie.self, from: data)
+                        let json = try JSONSerialization.jsonObject(with: data)
                         completion(.success(movies))
                     }
                     catch {

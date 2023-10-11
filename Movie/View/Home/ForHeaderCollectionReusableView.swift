@@ -7,8 +7,14 @@
 
 import UIKit
 
+protocol ForHeaderCollectionReusableViewDelegate: AnyObject {
+    func seeAllButtonTapped(section: Section)
+}
+
 class ForHeaderCollectionReusableView: UICollectionReusableView {
     static let identifier = "ForHeaderCollectionReusableView"
+    weak var delegate: ForHeaderCollectionReusableViewDelegate?
+    var section: Section?
     
     private let titleLabel: UILabel = {
         let label = UILabel()
@@ -24,10 +30,12 @@ class ForHeaderCollectionReusableView: UICollectionReusableView {
         btn.titleLabel?.font = .systemFont(ofSize: 18, weight: .bold)
         return btn
     }()
+    
     override init(frame: CGRect) {
         super.init(frame: frame)
         addSubview(titleLabel)
         addSubview(seeAllBtn)
+        seeAllBtn.addTarget(self, action: #selector(seeAllBtnTapped), for: .touchUpInside)
     }
     
     required init?(coder: NSCoder) {
@@ -44,5 +52,13 @@ class ForHeaderCollectionReusableView: UICollectionReusableView {
     
     public func configure(title: String) {
         titleLabel.text = title
+    }
+    
+    @objc func seeAllBtnTapped() {
+        
+        if let section = self.section {
+            delegate?.seeAllButtonTapped(section: section)
+//            print("S")
+        }
     }
 }

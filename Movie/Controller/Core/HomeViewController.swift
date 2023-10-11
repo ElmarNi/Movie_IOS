@@ -273,7 +273,6 @@ extension HomeViewController: UICollectionViewDataSource, UICollectionViewDelega
                 withReuseIdentifier: GenreCollectionViewCell.identifier,
                 for: indexPath) as? GenreCollectionViewCell
             {
-                
                 cell.configure(text: genres[indexPath.row].name)
                 return cell
             }
@@ -318,6 +317,8 @@ extension HomeViewController: UICollectionViewDataSource, UICollectionViewDelega
                 for: indexPath) as? ForHeaderCollectionReusableView
             {
                 headerView.configure(title: sections[indexPath.section].title)
+                headerView.section = sections[indexPath.section]
+                headerView.delegate = self
                 return headerView
             }
         }
@@ -338,5 +339,13 @@ extension HomeViewController: UICollectionViewDataSource, UICollectionViewDelega
         case .TopRatedMovies(let movies):
             let movie = movies[indexPath.row]
         }
+    }
+}
+
+extension HomeViewController: ForHeaderCollectionReusableViewDelegate {
+    func seeAllButtonTapped(section: Section) {
+        let moviesVC = MoviesViewController(section: section)
+        moviesVC.title = section.title
+        navigationController?.pushViewController(moviesVC, animated: true)
     }
 }

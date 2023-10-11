@@ -54,6 +54,7 @@ extension UIImageView {
             else {
                 self.image = UIImage(named: "no-image")
                 self.contentMode = .scaleAspectFit
+                completion()
                 return
             }
             DispatchQueue.main.async() { [weak self] in
