@@ -87,23 +87,3 @@ extension UILabel {
         return ceil(rect.size.height)
     }
 }
-
-//MARK: generate gradient color
-extension UIColor {
-    static func gradientColor(fromColor: UIColor, toColor: UIColor, atPercentage percentage: CGFloat) -> UIColor {
-        let percentage = min(max(percentage, 0), 1)
-        
-        var fromRed: CGFloat = 0.0, fromGreen: CGFloat = 0.0, fromBlue: CGFloat = 0.0, fromAlpha: CGFloat = 0.0
-        var toRed: CGFloat = 0.0, toGreen: CGFloat = 0.0, toBlue: CGFloat = 0.0, toAlpha: CGFloat = 0.0
-        
-        fromColor.getRed(&fromRed, green: &fromGreen, blue: &fromBlue, alpha: &fromAlpha)
-        toColor.getRed(&toRed, green: &toGreen, blue: &toBlue, alpha: &toAlpha)
-        
-        let interpolatedRed = fromRed + (toRed - fromRed) * percentage
-        let interpolatedGreen = fromGreen + (toGreen - fromGreen) * percentage
-        let interpolatedBlue = fromBlue + (toBlue - fromBlue) * percentage
-        let interpolatedAlpha = fromAlpha + (toAlpha - fromAlpha) * percentage
-        
-        return UIColor(red: interpolatedRed, green: interpolatedGreen, blue: interpolatedBlue, alpha: interpolatedAlpha)
-    }
-}

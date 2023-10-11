@@ -25,6 +25,7 @@ enum Section {
 class HomeViewController: UIViewController {
     
     private var sections = [Section]()
+    private var genres = [Genre]()
     private var collectionView: UICollectionView = {
         let collectionView = UICollectionView(
             frame: .zero,
@@ -243,6 +244,7 @@ extension HomeViewController {
             self?.sections.append(Section.UpcomingMovies(data: upcomingMovies))
             self?.sections.append(Section.PopularMovies(data: popularMovies))
             self?.sections.append(Section.TopRatedMovies(data: topRatedMovies))
+            self?.genres = genres
             self?.collectionView.reloadData()
             self?.spinner.stopAnimating()
         }
@@ -334,10 +336,28 @@ extension HomeViewController: UICollectionViewDataSource, UICollectionViewDelega
             navigationController?.pushViewController(moviesVC, animated: true)
         case .UpcomingMovies(let movies):
             let movie = movies[indexPath.row]
+            let movieGenres = genres.filter { genre in
+                movie.genre_ids.contains(genre.id)
+            }
+            
+            let movieVC = MovieViewController(movie: movie, genres: movieGenres)
+            navigationController?.pushViewController(movieVC, animated: true)
         case .PopularMovies(let movies):
             let movie = movies[indexPath.row]
+            let movieGenres = genres.filter { genre in
+                movie.genre_ids.contains(genre.id)
+            }
+            
+            let movieVC = MovieViewController(movie: movie, genres: movieGenres)
+            navigationController?.pushViewController(movieVC, animated: true)
         case .TopRatedMovies(let movies):
             let movie = movies[indexPath.row]
+            let movieGenres = genres.filter { genre in
+                movie.genre_ids.contains(genre.id)
+            }
+            
+            let movieVC = MovieViewController(movie: movie, genres: movieGenres)
+            navigationController?.pushViewController(movieVC, animated: true)
         }
     }
 }
