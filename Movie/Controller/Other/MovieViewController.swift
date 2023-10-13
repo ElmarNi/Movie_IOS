@@ -92,14 +92,11 @@ class MovieViewController: UIViewController {
                                      y: genresStackView.bottom + 10,
                                      width: view.width - 10,
                                      height: overviewLabel.calculateLabelHeight(width: view.width - 10))
-        
-        scrollView.backgroundColor = .yellow
-        
     }
     
     private func configure() {
         if let url = URL(string: "http://image.tmdb.org/t/p/w400/\(movie.backdrop_path ?? "")") {
-            coverImageView.downloaded(from: url, completion: {[weak self] in
+            coverImageView.download(from: url, sessionDelegate: self, completion: {[weak self] in
                 self?.coverImageSpinner.stopAnimating()
             })
         }
@@ -109,22 +106,30 @@ class MovieViewController: UIViewController {
         genres.enumerated().forEach { (index, genre) in
             if index < 3 {
                 
-                let genreLabel = UILabel()
-                genreLabel.textColor = .white
-                genreLabel.textAlignment = .center
-                genreLabel.numberOfLines = 0
-                genreLabel.font = .systemFont(ofSize: 12, weight: .bold)
-                genreLabel.backgroundColor = UIColor(red: 237.0 / 255.0, green:  17.0 / 255.0, blue: 95.0 / 255.0, alpha: 1.00)
-                genreLabel.layer.cornerRadius = 6
-                genreLabel.clipsToBounds = true
-                genreLabel.layer.masksToBounds = true
-                genreLabel.text = genre.name
-                genreLabel.frame = CGRect(x: (view.width / 3 * CGFloat(index)) + 5,
+                let genreButton = UIButton()
+                genreButton.backgroundColor = UIColor(red: 237.0 / 255.0, green:  17.0 / 255.0, blue: 95.0 / 255.0, alpha: 1.00)
+                genreButton.layer.cornerRadius = 6
+                genreButton.clipsToBounds = true
+                genreButton.layer.masksToBounds = true
+                genreButton.setTitle(genre.name, for: .normal)
+                genreButton.titleLabel?.textColor = .white
+                genreButton.titleLabel?.textAlignment = .center
+                genreButton.titleLabel?.numberOfLines = 0
+                genreButton.titleLabel?.font = .systemFont(ofSize: 12, weight: .bold)
+                genreButton.tag = genre.id
+                genreButton.frame = CGRect(x: (view.width / 3 * CGFloat(index)) + 5,
                                           y: 0,
                                           width: view.width / 3 - 10,
                                           height: 35)
-                genresStackView.addSubview(genreLabel)
+                genreButton.addTarget(self, action: #selector(genreButtonTapped(_:)), for: .touchUpInside)
+                genresStackView.addSubview(genreButton)
             }
         }
+    }
+    
+    @objc func genreButtonTapped(_ sender: UIButton) {
+        let moviesVC = MoviesViewController(genreId: sender.tag)
+        moviesVC.title = sender.titleLabel?.text
+        navigationController?.pushViewController(moviesVC, animated: true)
     }
 }

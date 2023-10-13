@@ -44,7 +44,7 @@ class MovieCollectionViewCell: UICollectionViewCell {
     
     public func configure(movie: Movie) {
         if let url = URL(string: "http://image.tmdb.org/t/p/w300/\(movie.poster_path)") {
-            coverImage.downloaded(from: url, completion: {[weak self] in
+            coverImage.download(from: url, sessionDelegate: self, completion: {[weak self] in
                 self?.spinner.stopAnimating()
             })
         }

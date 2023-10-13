@@ -71,7 +71,7 @@ class TopRatedMovieCollectionViewCell: UICollectionViewCell {
     public func configure(movie: Movie) {
         if  let urlString = movie.backdrop_path,
             let url = URL(string: "http://image.tmdb.org/t/p/w200/\(urlString)") {
-            coverImageView.downloaded(from: url, completion: {[weak self] in
+            coverImageView.download(from: url, sessionDelegate: self, completion: {[weak self] in
                 self?.spinner.stopAnimating()
             })
         }

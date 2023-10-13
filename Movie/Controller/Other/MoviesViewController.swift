@@ -9,6 +9,8 @@ import UIKit
 
 class MoviesViewController: UIViewController {
     private var movies = [Movie]()
+    private var genres = [Genre]()
+    private var name: String?
     var hasReachedLastCell = false
     private var genreId: Int?
     private var section: Section?
@@ -46,6 +48,11 @@ class MoviesViewController: UIViewController {
         super.init(nibName: nil, bundle: nil)
     }
     
+    init(name: String) {
+        self.name = name
+        super.init(nibName: nil, bundle: nil)
+    }
+    
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
@@ -78,12 +85,12 @@ class MoviesViewController: UIViewController {
         spinner.center = view.center
     }
     
-    override func viewDidDisappear(_ animated: Bool) {
-        super.viewDidDisappear(true)
-        movies = []
-        spinner.startAnimating()
-        collectionView.reloadData()
-    }
+//    override func viewDidDisappear(_ animated: Bool) {
+//        super.viewDidDisappear(true)
+////        movies = []
+////        spinner.startAnimating()
+////        collectionView.reloadData()
+//    }
     
 }
 
@@ -110,6 +117,16 @@ extension MoviesViewController {
 extension MoviesViewController {
     private func getMovies(completion: @escaping (Result<[Movie], Error>) -> Void) {
         DispatchQueue.main.async {
+            //MARK: get genres
+            
+            ApiCaller.shared.getGenres(sessionDelegate: self) { [weak self] result in
+                switch result {
+                case .success(let data):
+                    self?.genres = data.genres
+                case .failure(_): break
+                }
+            }
+            
             //MARK: get movies by genreId
             if let genreId = self.genreId {
                 ApiCaller.shared.getMoviesByGenreId(with: genreId, page: self.page, sessionDelegate: self) { [weak self] result in
@@ -122,6 +139,7 @@ extension MoviesViewController {
                     }
                 }
             }
+            
             //MARK: get movies by section
             if let section = self.section {
                 switch section {
@@ -159,6 +177,19 @@ extension MoviesViewController {
                     break
                 }
             }
+            
+            //MARK: get movies by name
+            if let name = self.name {
+                ApiCaller.shared.getMoviesByName(with: name, page: self.page, sessionDelegate: self) { [weak self] result in
+                    switch result {
+                    case .success(let data):
+                        self?.maxPage = data.total_pages
+                        completion(.success(data.results))
+                    case .failure(_):
+                        completion(.failure(NSError()))
+                    }
+                }
+            }
         }
     }
 }
@@ -177,6 +208,16 @@ extension MoviesViewController: UICollectionViewDelegate, UICollectionViewDataSo
             return cell
         }
         return UICollectionViewCell()
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+        let movie = movies[indexPath.row]
+        let movieGenres = genres.filter { genre in
+            movie.genre_ids.contains(genre.id)
+        }
+        
+        let movieVC = MovieViewController(movie: movie, genres: movieGenres)
+        navigationController?.pushViewController(movieVC, animated: true)
     }
 }
 

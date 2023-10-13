@@ -11,6 +11,7 @@ class TabBarController: UITabBarController {
     
     private let homeVC = HomeViewController()
     private let searchVC = SearchViewController()
+    private let profileVC = ProfileViewController()
     override func viewDidLoad() {
         super.viewDidLoad()
 
@@ -23,11 +24,15 @@ class TabBarController: UITabBarController {
         tabBar.scrollEdgeAppearance = tabBarAppearance
         
         homeVC.title = "Home"
+        searchVC.title = "Search"
+        profileVC.title = "Profile"
         let homeNavVC = UINavigationController(rootViewController: homeVC)
         let searchNavVC = UINavigationController(rootViewController: searchVC)
+        let profileNavVC = UINavigationController(rootViewController: profileVC)
         homeNavVC.tabBarItem = UITabBarItem(title: "Home", image: UIImage(systemName: "house"), tag: 0)
         searchNavVC.tabBarItem = UITabBarItem(title: "Search", image: UIImage(systemName: "magnifyingglass"), tag: 1)
-        setViewControllers([homeNavVC, searchNavVC], animated: false)
+        profileNavVC.tabBarItem = UITabBarItem(title: "Profile", image: UIImage(systemName: "person"), tag: 2)
+        setViewControllers([homeNavVC, searchNavVC, profileNavVC], animated: false)
     }
     
 }
