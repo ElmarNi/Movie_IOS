@@ -19,15 +19,8 @@ final class ApiCaller {
         case PUT
     }
     
-    struct ApiError: LocalizedError {
-        let description: String
-        init(_ description: String) {
-            self.description = description
-        }
-    }
-    
-    public func getGenres(sessionDelegate: URLSessionDelegate, completion: @escaping (Result<Genres, ApiError>) -> Void) {
-        createRequest(with: URL(string: "https://api.themoviedb.org/3/genre/movie/list?language=en"), type: .GET) { request in
+    public func getGenres(sessionDelegate: URLSessionDelegate, completion: @escaping (Result<Genres, Error>) -> Void) {
+        createRequest(with: URL(string: "https://api.themoviedb.org/3/genre/movie/list"), type: .GET) { request in
             URLSession(
                 configuration: URLSessionConfiguration.default,
                 delegate: sessionDelegate,
@@ -39,18 +32,18 @@ final class ApiCaller {
                         completion(.success(genres))
                     }
                     catch {
-                        completion(.failure(ApiError("Failed get data")))
+                        completion(.failure(NSError()))
                     }
                 }
                 else {
-                    completion(.failure(ApiError("Failed get data")))
+                    completion(.failure(NSError()))
                 }
             }.resume()
         }
     }
     
-    public func getUpcomingMovies(page: Int, sessionDelegate: URLSessionDelegate, completion: @escaping (Result<UpcomingMovie, ApiError>) -> Void) {
-        createRequest(with: URL(string: "https://api.themoviedb.org/3/movie/upcoming?language=en-US&page=\(page)"), type: .GET) { request in
+    public func getUpcomingMovies(page: Int, sessionDelegate: URLSessionDelegate, completion: @escaping (Result<UpcomingMovie, Error>) -> Void) {
+        createRequest(with: URL(string: "https://api.themoviedb.org/3/movie/upcoming?page=\(page)"), type: .GET) { request in
             URLSession(
                 configuration: URLSessionConfiguration.default,
                 delegate: sessionDelegate,
@@ -59,22 +52,21 @@ final class ApiCaller {
                 if let data = data, error == nil {
                     do{
                         let movies = try JSONDecoder().decode(UpcomingMovie.self, from: data)
-                        let json = try JSONSerialization.jsonObject(with: data)
                         completion(.success(movies))
                     }
                     catch {
-                        completion(.failure(ApiError("Failed get data")))
+                        completion(.failure(NSError()))
                     }
                 }
                 else {
-                    completion(.failure(ApiError("Failed get data")))
+                    completion(.failure(NSError()))
                 }
             }.resume()
         }
     }
     
-    public func getTopRatedMovies(page: Int, sessionDelegate: URLSessionDelegate, completion: @escaping (Result<CommonMovie, ApiError>) -> Void) {
-        createRequest(with: URL(string: "https://api.themoviedb.org/3/movie/top_rated?language=en-US&page=\(page)"), type: .GET) { request in
+    public func getTopRatedMovies(page: Int, sessionDelegate: URLSessionDelegate, completion: @escaping (Result<CommonMovie, Error>) -> Void) {
+        createRequest(with: URL(string: "https://api.themoviedb.org/3/movie/top_rated?page=\(page)"), type: .GET) { request in
             URLSession(
                 configuration: URLSessionConfiguration.default,
                 delegate: sessionDelegate,
@@ -86,18 +78,18 @@ final class ApiCaller {
                         completion(.success(movies))
                     }
                     catch {
-                        completion(.failure(ApiError("Failed get data")))
+                        completion(.failure(NSError()))
                     }
                 }
                 else {
-                    completion(.failure(ApiError("Failed get data")))
+                    completion(.failure(NSError()))
                 }
             }.resume()
         }
     }
     
-    public func getPopularMovies(page: Int, sessionDelegate: URLSessionDelegate, completion: @escaping (Result<CommonMovie, ApiError>) -> Void) {
-        createRequest(with: URL(string: "https://api.themoviedb.org/3/movie/popular?language=en-US&page=\(page)"), type: .GET) { request in
+    public func getPopularMovies(page: Int, sessionDelegate: URLSessionDelegate, completion: @escaping (Result<CommonMovie, Error>) -> Void) {
+        createRequest(with: URL(string: "https://api.themoviedb.org/3/movie/popular?page=\(page)"), type: .GET) { request in
             URLSession(
                 configuration: URLSessionConfiguration.default,
                 delegate: sessionDelegate,
@@ -109,18 +101,18 @@ final class ApiCaller {
                         completion(.success(movies))
                     }
                     catch {
-                        completion(.failure(ApiError("Failed get data")))
+                        completion(.failure(NSError()))
                     }
                 }
                 else {
-                    completion(.failure(ApiError("Failed get data")))
+                    completion(.failure(NSError()))
                 }
             }.resume()
         }
     }
     
-    public func getMoviesByGenreId(with genreId: Int, page: Int, sessionDelegate: URLSessionDelegate, completion: @escaping (Result<CommonMovie, ApiError>) -> Void) {
-        createRequest(with: URL(string: "https://api.themoviedb.org/3/discover/movie?include_adult=false&include_video=false&language=en-US&page=1&sort_by=popularity.desc&with_genres=\(genreId)"), type: .GET) { request in
+    public func getMoviesByGenreId(with genreId: Int, page: Int, sessionDelegate: URLSessionDelegate, completion: @escaping (Result<CommonMovie, Error>) -> Void) {
+        createRequest(with: URL(string: "https://api.themoviedb.org/3/discover/movie?include_adult=false&include_video=false&page=\(page)&sort_by=popularity.desc&with_genres=\(genreId)"), type: .GET) { request in
             URLSession(
                 configuration: URLSessionConfiguration.default,
                 delegate: sessionDelegate,
@@ -132,18 +124,18 @@ final class ApiCaller {
                         completion(.success(movies))
                     }
                     catch {
-                        completion(.failure(ApiError("Failed get data")))
+                        completion(.failure(NSError()))
                     }
                 }
                 else {
-                    completion(.failure(ApiError("Failed get data")))
+                    completion(.failure(NSError()))
                 }
             }.resume()
         }
     }
     
-    public func getMoviesByName(with name: String, page: Int, sessionDelegate: URLSessionDelegate, completion: @escaping (Result<CommonMovie, ApiError>) -> Void) {
-        createRequest(with: URL(string: "https://api.themoviedb.org/3/search/movie?query=\(name)&language=en-US&page=1"), type: .GET) { request in
+    public func getMoviesByName(with name: String, page: Int, sessionDelegate: URLSessionDelegate, completion: @escaping (Result<CommonMovie, Error>) -> Void) {
+        createRequest(with: URL(string: "https://api.themoviedb.org/3/search/movie?query=\(name)&page=\(page)"), type: .GET) { request in
             URLSession(
                 configuration: URLSessionConfiguration.default,
                 delegate: sessionDelegate,
@@ -155,17 +147,81 @@ final class ApiCaller {
                         completion(.success(movies))
                     }
                     catch {
-                        completion(.failure(ApiError("Failed get data")))
+                        completion(.failure(NSError()))
                     }
                 }
                 else {
-                    completion(.failure(ApiError("Failed get data")))
+                    completion(.failure(NSError()))
                 }
             }.resume()
         }
     }
     
-    public func getKey(sessionDelegate: URLSessionDelegate, completion: @escaping (Result<GetKey, ApiError>) -> Void)
+    public func getMoviesByUserId(with userId: Int, page: Int, sessionDelegate: URLSessionDelegate, completion: @escaping (Result<CommonMovie, Error>) -> Void) {
+        createRequest(with: URL(string: "https://api.themoviedb.org/3/account/\(userId)/favorite/movies?page=\(page)&sort_by=created_at.asc"), type: .GET) { request in
+            URLSession(
+                configuration: URLSessionConfiguration.default,
+                delegate: sessionDelegate,
+                delegateQueue: OperationQueue.main).dataTask(with: request)
+            { data, _, error in
+                if let data = data, error == nil {
+                    do{
+                        let movies = try JSONDecoder().decode(CommonMovie.self, from: data)
+                        completion(.success(movies))
+                    }
+                    catch {
+                        completion(.failure(NSError()))
+                    }
+                }
+                else {
+                    completion(.failure(NSError()))
+                }
+            }.resume()
+        }
+    }
+    
+    public func addToFavourite(with movieId: Int, userId: Int,sessionDelegate: URLSessionDelegate, completion: @escaping (Bool) -> Void)
+    {
+        createRequest(with: URL(string: "https://api.themoviedb.org/3/account/\(userId)/favorite"), type: .POST) { baseRequest in
+            
+            var request = baseRequest
+            let parameters: [String: Any] = [
+                "media_type": "movie",
+                "media_id": movieId,
+                "favorite": true
+            ]
+            
+            request.addValue("application/json", forHTTPHeaderField: "Content-Type")
+            request.httpBody = try? JSONSerialization.data(withJSONObject: parameters)
+            URLSession(
+                configuration: URLSessionConfiguration.default,
+                delegate: sessionDelegate,
+                delegateQueue: OperationQueue.main).dataTask(with: request)
+            { data, _, error in
+                if let data = data, error == nil {
+                    do {
+                        if let json = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any],
+                           let success = json["success"] as? Int,
+                           success == 1
+                        {
+                            completion(true)
+                        }
+                        else {
+                            completion(false)
+                        }
+                    }
+                    catch {
+                        completion(false)
+                    }
+                }
+                else {
+                    completion(false)
+                }
+            }.resume()
+        }
+    }
+    
+    public func getKey(sessionDelegate: URLSessionDelegate, completion: @escaping (Result<GetKey, Error>) -> Void)
     {
         createRequest(with: URL(string: "https://api.themoviedb.org/3//authentication/token/new"), type: .GET) { request in
             URLSession(
@@ -179,18 +235,18 @@ final class ApiCaller {
                         completion(.success(key))
                     }
                     catch {
-                        completion(.failure(ApiError("Failed get key")))
+                        completion(.failure(NSError()))
                     }
                 }
                 else {
-                    completion(.failure(ApiError("Failed get key")))
+                    completion(.failure(NSError()))
                 }
             }.resume()
         }
     }
     
     public func authenticate(username: String, password: String, apiKey: String, sessionDelegate: URLSessionDelegate,
-                             completion: @escaping (Result<GetKey, ApiError>) -> Void)
+                             completion: @escaping (Result<GetKey, Error>) -> Void)
     {
         createRequest(with: URL(string: "https://api.themoviedb.org/3/authentication/token/validate_with_login"), type: .POST) { baseRequest in
             
@@ -214,17 +270,17 @@ final class ApiCaller {
                         completion(.success(key))
                     }
                     catch {
-                        completion(.failure(ApiError("Failed get key")))
+                        completion(.failure(NSError()))
                     }
                 }
                 else {
-                    completion(.failure(ApiError("Failed get key")))
+                    completion(.failure(NSError()))
                 }
             }.resume()
         }
     }
     
-    public func fetchUserData(apiKey: String, sessionDelegate: URLSessionDelegate, completion: @escaping (Result<User, ApiError>) -> Void)
+    public func fetchUserData(apiKey: String, sessionDelegate: URLSessionDelegate, completion: @escaping (Result<User, Error>) -> Void)
     {
         createRequest(with: URL(string: "https://api.themoviedb.org/3/account?api_key=\(apiKey)"), type: .GET) { request in
             URLSession(
@@ -235,27 +291,33 @@ final class ApiCaller {
                 if let data = data, error == nil {
                     do{
                         let user = try JSONDecoder().decode(User.self, from: data)
+                        UserDefaults.standard.setValue(user.id, forKey: "UserId")
+                        UserDefaults.standard.setValue(user.username, forKey: "UserName")
                         completion(.success(user))
                     }
                     catch {
-                        completion(.failure(ApiError("Failed get user")))
+                        completion(.failure(NSError()))
                     }
                 }
                 else {
-                    completion(.failure(ApiError("Failed get user")))
+                    completion(.failure(NSError()))
                 }
             }.resume()
         }
     }
     
+    public func logOut() {
+        UserDefaults.standard.setValue(nil, forKey: "UserId")
+        UserDefaults.standard.setValue(nil, forKey: "UserName")
+    }
+    
     private func createRequest(with url: URL?, type: HTTPMethod, completion: @escaping (URLRequest) -> Void) {
-        if let url = url {
-            var request = URLRequest(url: url)
-            request.httpMethod = type.rawValue
-            request.timeoutInterval = 30
-            request.setValue("application/json", forHTTPHeaderField: "accept")
-            request.setValue("Bearer eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiI4YWNhMDEwNmFlZThlY2U0ZDMwOThlNTcwNGQxZTJkMCIsInN1YiI6IjY1MTZkMGEzOTY3Y2M3MDBhY2I4NzJhZCIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.oQF0cgq58KX3nIam3qWauiK4iaG3B6IwhyNQkv7fsAQ", forHTTPHeaderField: "Authorization")
-            completion(request)
-        }
+        guard let url = url else { return }
+        var request = URLRequest(url: url)
+        request.httpMethod = type.rawValue
+        request.timeoutInterval = 30
+        request.setValue("application/json", forHTTPHeaderField: "accept")
+        request.setValue("Bearer eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiI4YWNhMDEwNmFlZThlY2U0ZDMwOThlNTcwNGQxZTJkMCIsInN1YiI6IjY1MTZkMGEzOTY3Y2M3MDBhY2I4NzJhZCIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.oQF0cgq58KX3nIam3qWauiK4iaG3B6IwhyNQkv7fsAQ", forHTTPHeaderField: "Authorization")
+        completion(request)
     }
 }

@@ -76,7 +76,7 @@ extension UIImageView {
 
 //MARK: show custom error as alert
 extension UIViewController {
-    func showError(alertTitle: String, message: String, actionTitle: String) {
+    func showMessage(alertTitle: String, message: String, actionTitle: String) {
         let alert = UIAlertController(title: alertTitle, message: message, preferredStyle: .alert)
         alert.addAction(UIAlertAction(title: actionTitle, style: .default, handler: nil))
         present(alert, animated: true)

@@ -6,6 +6,7 @@
 //
 
 import UIKit
+import SnapKit
 
 class SearchViewController: UIViewController {
     private var genres = [Genre]()
@@ -55,19 +56,20 @@ class SearchViewController: UIViewController {
         view.addSubview(spinner)
         
         getData()
+        configureView()
     }
     
-    override func viewDidLayoutSubviews() {
-        super.viewDidLayoutSubviews()
+    private func configureView() {
         collectionView.frame = view.bounds
-        spinner.frame = CGRect(x: 0, y: 0, width: 0, height: 0)
-        spinner.center = view.center
+        spinner.snp.makeConstraints { make in
+            make.center.equalToSuperview()
+        }
     }
     
     @objc private func hideKeyboard() {
         searchController.searchBar.endEditing(false)
     }
-
+    
 }
 
 //MARK: search controller and search bar delegates
@@ -76,10 +78,9 @@ extension SearchViewController: UISearchResultsUpdating, UISearchBarDelegate {
         
     }
     func searchBarTextDidEndEditing(_ searchBar: UISearchBar) {
-        if let searchText = searchBar.text {
-            let moviesVC = MoviesViewController(name: searchText)
-            navigationController?.pushViewController(moviesVC, animated: true)
-        }
+        guard let searchText = searchBar.text else { return }
+        let moviesVC = MoviesViewController(name: searchText)
+        navigationController?.pushViewController(moviesVC, animated: true)
     }
 }
 
@@ -88,16 +89,16 @@ extension SearchViewController: UICollectionViewDelegate, UICollectionViewDataSo
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
         return genres.count
     }
-
+    
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-        if let cell = collectionView.dequeueReusableCell(
+        guard let cell = collectionView.dequeueReusableCell(
             withReuseIdentifier: GenreCollectionViewCell.identifier,
             for: indexPath) as? GenreCollectionViewCell
-        {
-            cell.configure(text: genres[indexPath.row].name)
-            return cell
+        else {
+            return UICollectionViewCell()
         }
-        return UICollectionViewCell()
+        cell.configure(text: genres[indexPath.row].name)
+        return cell
     }
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         let genre = genres[indexPath.row]
@@ -136,7 +137,7 @@ extension SearchViewController {
                 self?.collectionView.reloadData()
                 self?.spinner.stopAnimating()
             case .failure(_):
-                self?.showError(alertTitle: "Error", message: "Can't get genres", actionTitle: "OK")
+                self?.showMessage(alertTitle: "Error", message: "Can't get genres", actionTitle: "OK")
                 self?.spinner.stopAnimating()
             }
         }

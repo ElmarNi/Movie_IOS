@@ -6,6 +6,7 @@
 //
 
 import UIKit
+import SnapKit
 
 class MovieViewController: UIViewController {
 
@@ -71,35 +72,48 @@ class MovieViewController: UIViewController {
         scrollView.addSubview(genresStackView)
         scrollView.addSubview(overviewLabel)
         configure()
+        configureView()
     }
     
-    override func viewDidLayoutSubviews() {
-        super.viewDidLayoutSubviews()
-        
-        coverImageView.frame = CGRect(x: 10, y: 20, width: view.width - 20, height: 250)
-        coverImageSpinner.frame = CGRect(x: coverImageView.width / 2, y: coverImageView.height / 2, width: 0, height: 0)
-        
-        titleLabel.frame = CGRect(x: 5,
-                                  y: coverImageView.bottom + 10,
-                                  width: view.width - 10,
-                                  height: titleLabel.calculateLabelHeight(width: view.width - 10))
-        
+    private func configureView() {
         scrollView.frame = view.bounds
         
-        genresStackView.frame = CGRect(x: 0, y: titleLabel.bottom + 10, width: view.width, height: 35)
+        coverImageView.snp.makeConstraints { make in
+            make.left.equalToSuperview().offset(10)
+            make.width.equalToSuperview().inset(10)
+            make.top.equalToSuperview().offset(20)
+            make.height.equalTo(250)
+        }
         
-        overviewLabel.frame = CGRect(x: 5,
-                                     y: genresStackView.bottom + 10,
-                                     width: view.width - 10,
-                                     height: overviewLabel.calculateLabelHeight(width: view.width - 10))
+        coverImageSpinner.snp.makeConstraints { make in
+            make.center.equalToSuperview()
+        }
+        
+        titleLabel.snp.makeConstraints { make in
+            make.left.equalToSuperview().offset(5)
+            make.width.equalToSuperview().inset(5)
+            make.top.equalTo(coverImageView.snp.bottom).offset(5)
+        }
+        
+        genresStackView.snp.makeConstraints { make in
+            make.left.equalToSuperview()
+            make.width.equalToSuperview()
+            make.height.equalTo(35)
+            make.top.equalTo(titleLabel.snp.bottom).offset(5)
+        }
+        
+        overviewLabel.snp.makeConstraints { make in
+            make.left.equalToSuperview().offset(5)
+            make.width.equalToSuperview().inset(5)
+            make.top.equalTo(genresStackView.snp.bottom).offset(5)
+        }
     }
     
     private func configure() {
-        if let url = URL(string: "http://image.tmdb.org/t/p/w400/\(movie.backdrop_path ?? "")") {
-            coverImageView.download(from: url, sessionDelegate: self, completion: {[weak self] in
-                self?.coverImageSpinner.stopAnimating()
-            })
-        }
+        guard let url = URL(string: "http://image.tmdb.org/t/p/w400/\(movie.backdrop_path ?? "")") else { return }
+        coverImageView.download(from: url, sessionDelegate: self, completion: {[weak self] in
+            self?.coverImageSpinner.stopAnimating()
+        })
         
         titleLabel.text = movie.title
         overviewLabel.text = movie.overview
@@ -118,9 +132,9 @@ class MovieViewController: UIViewController {
                 genreButton.titleLabel?.font = .systemFont(ofSize: 12, weight: .bold)
                 genreButton.tag = genre.id
                 genreButton.frame = CGRect(x: (view.width / 3 * CGFloat(index)) + 5,
-                                          y: 0,
-                                          width: view.width / 3 - 10,
-                                          height: 35)
+                                           y: 0,
+                                           width: view.width / 3 - 10,
+                                           height: 35)
                 genreButton.addTarget(self, action: #selector(genreButtonTapped(_:)), for: .touchUpInside)
                 genresStackView.addSubview(genreButton)
             }

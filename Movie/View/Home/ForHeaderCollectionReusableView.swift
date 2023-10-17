@@ -6,6 +6,7 @@
 //
 
 import UIKit
+import SnapKit
 
 protocol ForHeaderCollectionReusableViewDelegate: AnyObject {
     func seeAllButtonTapped(section: Section)
@@ -36,18 +37,26 @@ class ForHeaderCollectionReusableView: UICollectionReusableView {
         addSubview(titleLabel)
         addSubview(seeAllBtn)
         seeAllBtn.addTarget(self, action: #selector(seeAllBtnTapped), for: .touchUpInside)
+        configureView()
     }
     
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
     
-    override func layoutSubviews() {
-        super.layoutSubviews()
-        titleLabel.sizeToFit()
-        seeAllBtn.sizeToFit()
-        titleLabel.frame = CGRect(x: 0, y: 0, width: titleLabel.width, height: height)
-        seeAllBtn.frame = CGRect(x: width - seeAllBtn.width, y: 0, width: seeAllBtn.width, height: height)
+    private func configureView() {
+        titleLabel.snp.makeConstraints {[weak self] make in
+            make.top.equalToSuperview()
+            make.width.lessThanOrEqualTo(self?.width ?? 57 - 57)
+            make.height.equalTo(20)
+        }
+        
+        seeAllBtn.snp.makeConstraints { make in
+            make.top.equalToSuperview()
+            make.width.equalTo(57)
+            make.height.equalTo(20)
+            make.trailing.equalToSuperview()
+        }
     }
     
     public func configure(title: String) {
@@ -55,10 +64,7 @@ class ForHeaderCollectionReusableView: UICollectionReusableView {
     }
     
     @objc func seeAllBtnTapped() {
-        
-        if let section = self.section {
-            delegate?.seeAllButtonTapped(section: section)
-//            print("S")
-        }
+        guard let section = self.section else { return }
+        delegate?.seeAllButtonTapped(section: section)
     }
 }

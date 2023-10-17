@@ -26,12 +26,16 @@ class GenreCollectionViewCell: UICollectionViewCell {
         contentView.clipsToBounds = false
         contentView.layer.masksToBounds = false
         addSubview(genreName)
+        configureView()
     }
     
-    override func layoutSubviews() {
-        super.layoutSubviews()
-        genreName.sizeToFit()
-        genreName.frame = CGRect(x: 5, y: 5, width: width - 10, height: height - 10)
+    private func configureView() {
+        genreName.snp.makeConstraints { make in
+            make.top.equalToSuperview().inset(5)
+            make.left.equalToSuperview().inset(5)
+            make.width.equalToSuperview().inset(5)
+            make.height.equalToSuperview().inset(5)
+        }
     }
     
     required init?(coder: NSCoder) {

@@ -6,6 +6,7 @@
 //
 
 import UIKit
+import SnapKit
 
 enum Section {
     case Genre(data: [Genre])
@@ -58,13 +59,14 @@ class HomeViewController: UIViewController {
         view.backgroundColor = .systemBackground
         view.addSubview(collectionView)
         view.addSubview(spinner)
+        configureView()
     }
     
-    override func viewDidLayoutSubviews() {
-        super.viewDidLayoutSubviews()
+    private func configureView() {
         collectionView.frame = view.bounds
-        spinner.frame = CGRect(x: 0, y: 0, width: 0, height: 0)
-        spinner.center = view.center
+        spinner.snp.makeConstraints { make in
+            make.center.equalToSuperview()
+        }
     }
 }
 
@@ -199,7 +201,7 @@ extension HomeViewController {
             case .success(let data):
                 genres = data.genres
             case .failure(_):
-                self?.showError(alertTitle: "Error", message: "Can't get genres", actionTitle: "OK")
+                self?.showMessage(alertTitle: "Error", message: "Can't get genres", actionTitle: "OK")
             }
         }
         
@@ -211,7 +213,7 @@ extension HomeViewController {
             case .success(let data):
                 upcomingMovies = data.results
             case .failure(_):
-                self?.showError(alertTitle: "Error", message: "Can't get upcoming movies", actionTitle: "OK")
+                self?.showMessage(alertTitle: "Error", message: "Can't get upcoming movies", actionTitle: "OK")
             }
         }
         
@@ -223,7 +225,7 @@ extension HomeViewController {
             case .success(let data):
                 popularMovies = data.results
             case .failure(_):
-                self?.showError(alertTitle: "Error", message: "Can't get popular movies", actionTitle: "OK")
+                self?.showMessage(alertTitle: "Error", message: "Can't get popular movies", actionTitle: "OK")
             }
         }
         
@@ -235,7 +237,7 @@ extension HomeViewController {
             case .success(let data):
                 topRatedMovies = data.results
             case .failure(_):
-                self?.showError(alertTitle: "Error", message: "Can't get top rated movies", actionTitle: "OK")
+                self?.showMessage(alertTitle: "Error", message: "Can't get top rated movies", actionTitle: "OK")
             }
         }
         
@@ -271,37 +273,41 @@ extension HomeViewController: UICollectionViewDataSource, UICollectionViewDelega
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         switch sections[indexPath.section] {
         case .Genre(let genres):
-            if let cell = collectionView.dequeueReusableCell(
+            guard let cell = collectionView.dequeueReusableCell(
                 withReuseIdentifier: GenreCollectionViewCell.identifier,
                 for: indexPath) as? GenreCollectionViewCell
-            {
-                cell.configure(text: genres[indexPath.row].name)
-                return cell
+            else {
+                return UICollectionViewCell()
             }
+            cell.configure(text: genres[indexPath.row].name)
+            return cell
         case .UpcomingMovies(let movies):
-            if let cell = collectionView.dequeueReusableCell(
+            guard let cell = collectionView.dequeueReusableCell(
                 withReuseIdentifier: MovieCollectionViewCell.identifier,
                 for: indexPath) as? MovieCollectionViewCell
-            {
-                cell.configure(movie: movies[indexPath.row])
-                return cell
+            else {
+                return UICollectionViewCell()
             }
+            cell.configure(movie: movies[indexPath.row])
+            return cell
         case .PopularMovies(let movies):
-            if let cell = collectionView.dequeueReusableCell(
+            guard let cell = collectionView.dequeueReusableCell(
                 withReuseIdentifier: MovieCollectionViewCell.identifier,
                 for: indexPath) as? MovieCollectionViewCell
-            {
-                cell.configure(movie: movies[indexPath.row])
-                return cell
+            else {
+                return UICollectionViewCell()
             }
+            cell.configure(movie: movies[indexPath.row])
+            return cell
         case .TopRatedMovies(let movies):
-            if let cell = collectionView.dequeueReusableCell(
+            guard let cell = collectionView.dequeueReusableCell(
                 withReuseIdentifier: TopRatedMovieCollectionViewCell.identifier,
                 for: indexPath) as? TopRatedMovieCollectionViewCell
-            {
-                cell.configure(movie: movies[indexPath.row])
-                return cell
+            else {
+                return UICollectionViewCell()
             }
+            cell.configure(movie: movies[indexPath.row])
+            return cell
         }
         
         return UICollectionViewCell()
@@ -313,16 +319,17 @@ extension HomeViewController: UICollectionViewDataSource, UICollectionViewDelega
     
     func collectionView(_ collectionView: UICollectionView, viewForSupplementaryElementOfKind kind: String, at indexPath: IndexPath) -> UICollectionReusableView {
         if kind == UICollectionView.elementKindSectionHeader {
-            if let headerView = collectionView.dequeueReusableSupplementaryView(
+            guard let headerView = collectionView.dequeueReusableSupplementaryView(
                 ofKind: kind,
                 withReuseIdentifier: ForHeaderCollectionReusableView.identifier,
                 for: indexPath) as? ForHeaderCollectionReusableView
-            {
-                headerView.configure(title: sections[indexPath.section].title)
-                headerView.section = sections[indexPath.section]
-                headerView.delegate = self
-                return headerView
+            else {
+                return UICollectionReusableView()
             }
+            headerView.configure(title: sections[indexPath.section].title)
+            headerView.section = sections[indexPath.section]
+            headerView.delegate = self
+            return headerView
         }
         return UICollectionReusableView()
     }

@@ -6,10 +6,12 @@
 //
 
 import UIKit
+import SnapKit
 
 class MoviesViewController: UIViewController {
     private var movies = [Movie]()
     private var genres = [Genre]()
+    private var userId: Int?
     private var name: String?
     var hasReachedLastCell = false
     private var genreId: Int?
@@ -53,6 +55,11 @@ class MoviesViewController: UIViewController {
         super.init(nibName: nil, bundle: nil)
     }
     
+    init(userId: Int) {
+        self.userId = userId
+        super.init(nibName: nil, bundle: nil)
+    }
+    
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
@@ -69,28 +76,72 @@ class MoviesViewController: UIViewController {
             switch result {
             case .success(let movies):
                 self?.movies = movies
-                
                 self?.collectionView.reloadData()
             case .failure(_):
-                self?.showError(alertTitle: "Error", message: "Can't get movies", actionTitle: "OK")
+                self?.showMessage(alertTitle: "Error", message: "Can't get movies", actionTitle: "OK")
             }
             self?.spinner.stopAnimating()
         }
+        configureView()
+        let longPressGesture = UILongPressGestureRecognizer(target: self, action: #selector(handleLongPress))
+        longPressGesture.minimumPressDuration = 0.5
+        longPressGesture.delegate = self
+        collectionView.addGestureRecognizer(longPressGesture)
     }
     
-    override func viewDidLayoutSubviews() {
-        super.viewDidLayoutSubviews()
+    private func configureView() {
         collectionView.frame = view.bounds
-        spinner.frame = CGRect(x: 0, y: 0, width: 0, height: 0)
-        spinner.center = view.center
+        spinner.snp.makeConstraints { make in
+            make.center.equalToSuperview()
+        }
     }
     
-//    override func viewDidDisappear(_ animated: Bool) {
-//        super.viewDidDisappear(true)
-////        movies = []
-////        spinner.startAnimating()
-////        collectionView.reloadData()
-//    }
+}
+
+//MARK: handle long press
+extension MoviesViewController {
+    @objc func handleLongPress(sender: UILongPressGestureRecognizer) {
+        if sender.state == .began && UserDefaults.standard.value(forKey: "UserId") != nil
+        {
+            let touchPoint = sender.location(in: collectionView)
+            if let indexPath = collectionView.indexPathForItem(at: touchPoint) {
+                let alert = UIAlertController(title: "Add to favourite",
+                                              message: "Are you sure add \"\(movies[indexPath.row].title)\" to favourites ?",
+                                              preferredStyle: .actionSheet)
+                alert.addAction(UIAlertAction(title: "Add", style: .default) {[weak self] _ in
+                    guard let movieId = self?.movies[indexPath.row].id,
+                          let userId = UserDefaults.standard.value(forKey: "UserId") as? Int,
+                          let self = self
+                    else {
+                        return
+                    }
+                    ApiCaller.shared.addToFavourite(with: movieId, userId: userId, sessionDelegate: self) { result in
+                        if result {
+                            self.showMessage(alertTitle: "Success", message: "Movie successfully added to favourites", actionTitle: "OK")
+                        }
+                        else {
+                            self.showMessage(alertTitle: "Error", message: "Can't add movie to favourites", actionTitle: "OK")
+                        }
+                    }
+                })
+                alert.addAction(UIAlertAction(title: "Cancel", style: .destructive))
+                
+                if UIDevice.current.userInterfaceIdiom == .phone {
+                    present(alert, animated: true)
+                }
+                else {
+                    if let popoverController = alert.popoverPresentationController {
+                        popoverController.sourceView = self.view
+                        popoverController.sourceRect = CGRect(x: self.view.bounds.midX, y: self.view.bounds.midY, width: 0, height: 0)
+                        popoverController.permittedArrowDirections = []
+                    }
+                    else {
+                        present(alert, animated: true)
+                    }
+                }
+            }
+        }
+    }
     
 }
 
@@ -190,8 +241,26 @@ extension MoviesViewController {
                     }
                 }
             }
+            
+            //MARK: get movies by user id
+            if let userId = self.userId {
+                ApiCaller.shared.getMoviesByUserId(with: userId, page: self.page, sessionDelegate: self) { [weak self] result in
+                    switch result {
+                    case .success(let data):
+                        self?.maxPage = data.total_pages
+                        completion(.success(data.results))
+                    case .failure(_):
+                        completion(.failure(NSError()))
+                    }
+                }
+            }
         }
     }
+}
+
+//MARK: gesture delegate
+extension MoviesViewController: UIGestureRecognizerDelegate {
+    
 }
 
 //MARK: collection view data source and delegate
@@ -201,13 +270,15 @@ extension MoviesViewController: UICollectionViewDelegate, UICollectionViewDataSo
     }
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-        if let cell = collectionView.dequeueReusableCell(withReuseIdentifier: MovieCollectionViewCell.identifier, for: indexPath)
-            as? MovieCollectionViewCell
-        {
-            cell.configure(movie: movies[indexPath.row])
-            return cell
+        guard let cell = collectionView.dequeueReusableCell(
+            withReuseIdentifier: MovieCollectionViewCell.identifier,
+            for: indexPath) as? MovieCollectionViewCell
+        else {
+            return UICollectionViewCell()
         }
-        return UICollectionViewCell()
+        
+        cell.configure(movie: movies[indexPath.row])
+        return cell
     }
     
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
@@ -228,16 +299,16 @@ extension MoviesViewController: UIScrollViewDelegate {
         if(verticalPercentage > 0.6 && !hasReachedLastCell) {
             hasReachedLastCell = true
             self.page += 1
-            if let maxPage = self.maxPage, self.page <= maxPage {
-                getMovies { [weak self] result in
-                    switch result {
-                    case .success(let movies):
-                        self?.movies += movies
-                        self?.collectionView.reloadData()
-                        self?.hasReachedLastCell = false
-                    case .failure(_):
-                        self?.hasReachedLastCell = false
-                    }
+            guard let maxPage = self.maxPage, self.page <= maxPage else { return }
+            
+            getMovies { [weak self] result in
+                switch result {
+                case .success(let movies):
+                    self?.movies += movies
+                    self?.collectionView.reloadData()
+                    self?.hasReachedLastCell = false
+                case .failure(_):
+                    self?.hasReachedLastCell = false
                 }
             }
         }

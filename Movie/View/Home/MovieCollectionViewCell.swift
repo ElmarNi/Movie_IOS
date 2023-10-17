@@ -6,6 +6,7 @@
 //
 
 import UIKit
+import SnapKit
 
 class MovieCollectionViewCell: UICollectionViewCell {
     static let identifier = "MovieCollectionViewCell"
@@ -29,13 +30,14 @@ class MovieCollectionViewCell: UICollectionViewCell {
         super.init(frame: frame)
         contentView.addSubview(coverImage)
         contentView.addSubview(spinner)
+        configureView()
     }
     
-    override func layoutSubviews() {
-        super.layoutSubviews()
-        spinner.frame = CGRect(x: 0, y: 0, width: 0, height: 0)
-        spinner.center = contentView.center
-        coverImage.frame = CGRect(x: 0, y: 0, width: width, height: height)
+    private func configureView() {
+        coverImage.frame = contentView.bounds
+        spinner.snp.makeConstraints { make in
+            make.center.equalToSuperview()
+        }
     }
     
     required init?(coder: NSCoder) {
@@ -43,10 +45,9 @@ class MovieCollectionViewCell: UICollectionViewCell {
     }
     
     public func configure(movie: Movie) {
-        if let url = URL(string: "http://image.tmdb.org/t/p/w300/\(movie.poster_path)") {
-            coverImage.download(from: url, sessionDelegate: self, completion: {[weak self] in
-                self?.spinner.stopAnimating()
-            })
-        }
+        guard let url = URL(string: "http://image.tmdb.org/t/p/w300/\(movie.poster_path)") else { return }
+        coverImage.download(from: url, sessionDelegate: self, completion: {[weak self] in
+            self?.spinner.stopAnimating()
+        })
     }
 }
