@@ -8,7 +8,7 @@
 import UIKit
 
 class ProfileViewController: UIViewController {
-    
+    //MARK: Properties
     private let signInButton: UIButton = {
         let btn = UIButton()
         btn.setTitle("Sign in", for: .normal)
@@ -16,7 +16,6 @@ class ProfileViewController: UIViewController {
         btn.isHidden = true
         return btn
     }()
-    
     private let spinner: UIActivityIndicatorView = {
         let spinner = UIActivityIndicatorView()
         spinner.startAnimating()
@@ -24,7 +23,6 @@ class ProfileViewController: UIViewController {
         spinner.isHidden = true
         return spinner
     }()
-    
     private let tableView: UITableView = {
         let tableView = UITableView()
         tableView.register(UITableViewCell.self, forCellReuseIdentifier: "cell")
@@ -40,9 +38,8 @@ class ProfileViewController: UIViewController {
         view.addSubview(tableView)
         tableView.delegate = self
         tableView.dataSource = self
-        
         signInButton.addTarget(self, action: #selector(signInButtonTapped), for: .touchUpInside)
-        configureView()
+        setupUI()
         
         let userId = UserDefaults.standard.value(forKey: "UserId")
         signInButton.isHidden = (userId != nil)
@@ -50,8 +47,12 @@ class ProfileViewController: UIViewController {
 
     }
     
-    private func configureView() {
-        tableView.frame = view.bounds
+    //MARK: set up UI elements and constraints
+    private func setupUI() {
+        tableView.snp.makeConstraints { make in
+            make.left.top.width.height.equalToSuperview()
+        }
+        
         signInButton.snp.makeConstraints { make in
             make.center.equalToSuperview()
         }
@@ -61,6 +62,7 @@ class ProfileViewController: UIViewController {
         }
     }
     
+    //MARK: handle tapping main sign in button
     @objc func signInButtonTapped() {
         let alert = UIAlertController(title: "Sign In", message: "", preferredStyle: .alert)
         
@@ -80,6 +82,64 @@ class ProfileViewController: UIViewController {
         present(alert, animated: true)
     }
     
+    //MARK: get user data from api, show error or success cases, configure view for successfully signed in or not
+    private func getUsersData(alert: UIAlertController) {
+        self.signInButton.isHidden = true
+        self.spinner.startAnimating()
+        self.spinner.isHidden = false
+        
+        if let userNameField = alert.textFields?[0], let userName = userNameField.text,
+           let passwordField = alert.textFields?[1], let password = passwordField.text
+           
+        {
+            DispatchQueue.main.async {
+                ApiCaller.shared.getKey(sessionDelegate: self) {result in
+                    switch result {
+                    case .success(let data):
+                        ApiCaller.shared.authenticate(username: userName, password: password, apiKey: data.request_token, sessionDelegate: self)
+                        { result in
+                            switch result {
+                            case .success(let data):
+                                ApiCaller.shared.fetchUserData(apiKey: data.request_token, sessionDelegate: self) { result in
+                                    switch result {
+                                    case .success(_):
+                                        Haptics.shared.triggerNotificationFeedback(type: .success)
+                                        self.configureSpinnerAndSignInButton(success: true)
+                                        self.tableView.reloadData()
+                                    case .failure(_):
+                                        Haptics.shared.triggerNotificationFeedback(type: .error)
+                                        self.showMessage(alertTitle: "Error", message: "Username or Password are wrong", actionTitle: "OK")
+                                        self.configureSpinnerAndSignInButton(success: false)
+                                    }
+                                }
+                            case .failure(_):
+                                Haptics.shared.triggerNotificationFeedback(type: .error)
+                                self.showMessage(alertTitle: "Error", message: "Username or Password are wrong", actionTitle: "OK")
+                                self.configureSpinnerAndSignInButton(success: false)
+                            }
+                        }
+                    case .failure(_):
+                        Haptics.shared.triggerNotificationFeedback(type: .error)
+                        self.showMessage(alertTitle: "Error", message: "Username or Password are wrong", actionTitle: "OK")
+                        self.configureSpinnerAndSignInButton(success: false)
+                    }
+                }
+            }
+        }
+        else {
+            Haptics.shared.triggerNotificationFeedback(type: .error)
+            self.showMessage(alertTitle: "Error", message: "Username or Password are wrong", actionTitle: "OK")
+            self.configureSpinnerAndSignInButton(success: false)
+        }
+    }
+    
+    //MARK: configure spinner and sign-in button based on success flag
+    private func configureSpinnerAndSignInButton(success: Bool) {
+        self.signInButton.isHidden = success
+        self.tableView.isHidden = !success
+        self.spinner.stopAnimating()
+        self.spinner.isHidden = true
+    }
 }
 
 //MARK: table view delegate and data source
@@ -94,8 +154,12 @@ extension ProfileViewController: UITableViewDelegate, UITableViewDataSource {
         switch indexPath.row {
         case 0:
             cell.textLabel?.text = "Username: \(UserDefaults.standard.value(forKey: "UserName") ?? "")"
+            cell.textLabel?.textColor = .label
+            cell.textLabel?.font = .systemFont(ofSize: 18, weight: .regular)
         case 1:
-            cell.textLabel?.text = "Favorite movies"
+            cell.textLabel?.text = "Favourite movies"
+            cell.textLabel?.textColor = .label
+            cell.textLabel?.font = .systemFont(ofSize: 18, weight: .regular)
         case 2:
             cell.textLabel?.text = "Log out"
             cell.textLabel?.textColor = .red
@@ -109,12 +173,13 @@ extension ProfileViewController: UITableViewDelegate, UITableViewDataSource {
         switch indexPath.row {
         case 1:
             guard let userId = UserDefaults.standard.value(forKey: "UserId") as? Int else { return }
-            let moviesVC = MoviesViewController(userId: userId)
+            let moviesVC = MoviesViewController(userId: userId, isFromProfile: true)
             navigationController?.pushViewController(moviesVC, animated: true)
         case 2:
             let alert = UIAlertController(title: "Log out", message: "Are you sure for log out ?", preferredStyle: .alert)
             
             alert.addAction(UIAlertAction(title: "Log out", style: .default, handler: { _ in
+                Haptics.shared.triggerNotificationFeedback(type: .success)
                 ApiCaller.shared.logOut()
                 self.configureSpinnerAndSignInButton(success: false)
             }))
@@ -125,57 +190,4 @@ extension ProfileViewController: UITableViewDelegate, UITableViewDataSource {
         tableView.deselectRow(at: indexPath, animated: true)
     }
     
-}
-
-//MARK: get user data from api
-extension ProfileViewController {
-    private func getUsersData(alert: UIAlertController) {
-        if let userNameField = alert.textFields?[0], let userName = userNameField.text,
-           let passwordField = alert.textFields?[1], let password = passwordField.text
-           
-        {
-            self.signInButton.isHidden = true
-            self.spinner.startAnimating()
-            self.spinner.isHidden = false
-            DispatchQueue.main.async {
-                ApiCaller.shared.getKey(sessionDelegate: self) {result in
-                    switch result {
-                    case .success(let data):
-                        ApiCaller.shared.authenticate(username: userName, password: password, apiKey: data.request_token, sessionDelegate: self)
-                        { result in
-                            switch result {
-                            case .success(let data):
-                                ApiCaller.shared.fetchUserData(apiKey: data.request_token, sessionDelegate: self) { result in
-                                    switch result {
-                                    case .success(_):
-                                        self.configureSpinnerAndSignInButton(success: true)
-                                    case .failure(_):
-                                        self.showMessage(alertTitle: "Error", message: "Username or Password are wrong", actionTitle: "OK")
-                                        self.configureSpinnerAndSignInButton(success: false)
-                                    }
-                                }
-                            case .failure(_):
-                                self.showMessage(alertTitle: "Error", message: "Username or Password are wrong", actionTitle: "OK")
-                                self.configureSpinnerAndSignInButton(success: false)
-                            }
-                        }
-                    case .failure(_):
-                        self.showMessage(alertTitle: "Error", message: "Username or Password are wrong", actionTitle: "OK")
-                        self.configureSpinnerAndSignInButton(success: false)
-                    }
-                }
-            }
-        }
-        else {
-            self.showMessage(alertTitle: "Error", message: "Username or Password are wrong", actionTitle: "OK")
-            self.configureSpinnerAndSignInButton(success: false)
-        }
-    }
-    
-    private func configureSpinnerAndSignInButton(success: Bool) {
-        self.signInButton.isHidden = success
-        self.tableView.isHidden = !success
-        self.spinner.stopAnimating()
-        self.spinner.isHidden = true
-    }
 }

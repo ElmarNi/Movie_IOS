@@ -37,14 +37,15 @@ class ForHeaderCollectionReusableView: UICollectionReusableView {
         addSubview(titleLabel)
         addSubview(seeAllBtn)
         seeAllBtn.addTarget(self, action: #selector(seeAllBtnTapped), for: .touchUpInside)
-        configureView()
+        setupUI()
     }
     
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
     
-    private func configureView() {
+    //MARK: set up UI elements and constraints
+    private func setupUI() {
         titleLabel.snp.makeConstraints {[weak self] make in
             make.top.equalToSuperview()
             make.width.lessThanOrEqualTo(self?.width ?? 57 - 57)

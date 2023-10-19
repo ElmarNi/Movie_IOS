@@ -9,6 +9,7 @@ import UIKit
 import SnapKit
 
 class MoviesViewController: UIViewController {
+    //MARK: Properties
     private var movies = [Movie]()
     private var genres = [Genre]()
     private var userId: Int?
@@ -18,6 +19,7 @@ class MoviesViewController: UIViewController {
     private var section: Section?
     private var page = 1
     private var maxPage: Int?
+    private var isFromProfile = false
     
     private let collectionView: UICollectionView = {
         let collectionView = UICollectionView(
@@ -29,34 +31,47 @@ class MoviesViewController: UIViewController {
         return collectionView
     }()
     
-    let spinner: UIActivityIndicatorView = {
+    private let spinner: UIActivityIndicatorView = {
         let spinner = UIActivityIndicatorView()
         spinner.startAnimating()
         spinner.hidesWhenStopped = true
         return spinner
     }()
     
+    private let searchForMoviesButton: UIButton = {
+        let btn = UIButton()
+        btn.setTitle("Search for movies", for: .normal)
+        btn.setTitleColor(.link, for: .normal)
+        btn.isHidden = true
+        return btn
+    }()
+    
     override init(nibName nibNameOrNil: String?, bundle nibBundleOrNil: Bundle?) {
         super.init(nibName: nil, bundle: nil)
     }
     
+    //MARK: Initialization for genre id
     init(genreId: Int) {
         self.genreId = genreId
         super.init(nibName: nil, bundle: nil)
     }
     
+    //MARK: Initialization for section
     init(section: Section) {
         self.section = section
         super.init(nibName: nil, bundle: nil)
     }
     
+    //MARK: Initialization for movie name
     init(name: String) {
         self.name = name
         super.init(nibName: nil, bundle: nil)
     }
     
-    init(userId: Int) {
+    //MARK: Initialization for user id
+    init(userId: Int, isFromProfile: Bool) {
         self.userId = userId
+        self.isFromProfile = isFromProfile
         super.init(nibName: nil, bundle: nil)
     }
     
@@ -69,6 +84,7 @@ class MoviesViewController: UIViewController {
         view.backgroundColor = .systemBackground
         view.addSubview(collectionView)
         view.addSubview(spinner)
+        view.addSubview(searchForMoviesButton)
         collectionView.delegate = self
         collectionView.dataSource = self
         
@@ -76,54 +92,107 @@ class MoviesViewController: UIViewController {
             switch result {
             case .success(let movies):
                 self?.movies = movies
+                if ((self?.isFromProfile) != nil) {
+                    self?.searchForMoviesButton.isHidden = self?.movies.count != 0
+                }
                 self?.collectionView.reloadData()
             case .failure(_):
+                Haptics.shared.triggerNotificationFeedback(type: .error)
                 self?.showMessage(alertTitle: "Error", message: "Can't get movies", actionTitle: "OK")
             }
             self?.spinner.stopAnimating()
         }
-        configureView()
+        setupUI()
+        addLongPressGesture()
+        searchForMoviesButton.addTarget(self, action: #selector(searchForMoviesButtonTapped), for: .touchUpInside)
+    }
+    
+    //MARK: set up UI elements and constraints
+    private func setupUI() {
+        collectionView.snp.makeConstraints { make in
+            make.left.top.width.height.equalToSuperview()
+        }
+        spinner.snp.makeConstraints { make in
+            make.center.equalToSuperview()
+        }
+        searchForMoviesButton.snp.makeConstraints { make in
+            make.center.equalToSuperview()
+        }
+    }
+    
+    //MARK: add long press gesture recognizer
+    private func addLongPressGesture() {
         let longPressGesture = UILongPressGestureRecognizer(target: self, action: #selector(handleLongPress))
         longPressGesture.minimumPressDuration = 0.5
         longPressGesture.delegate = self
         collectionView.addGestureRecognizer(longPressGesture)
     }
     
-    private func configureView() {
-        collectionView.frame = view.bounds
-        spinner.snp.makeConstraints { make in
-            make.center.equalToSuperview()
-        }
+    //MARK: change navigation controller when search movies button tapped
+    @objc func searchForMoviesButtonTapped() {
+        self.tabBarController?.selectedIndex = 1
     }
     
 }
 
 //MARK: handle long press
-extension MoviesViewController {
+extension MoviesViewController: UIGestureRecognizerDelegate {
     @objc func handleLongPress(sender: UILongPressGestureRecognizer) {
         if sender.state == .began && UserDefaults.standard.value(forKey: "UserId") != nil
         {
+            Haptics.shared.triggerImpactFeedback()
             let touchPoint = sender.location(in: collectionView)
             if let indexPath = collectionView.indexPathForItem(at: touchPoint) {
-                let alert = UIAlertController(title: "Add to favourite",
-                                              message: "Are you sure add \"\(movies[indexPath.row].title)\" to favourites ?",
+                var alertTitle: String?
+                var alertMessage: String?
+                var actionTitle: String?
+                var successMessage: String?
+                var errorMessage: String?
+                
+                if isFromProfile {
+                    alertTitle = "Remove from favourites"
+                    alertMessage = "Are you sure remove \"\(movies[indexPath.row].title)\" from favourites ?"
+                    actionTitle = "Remove"
+                    successMessage = "Movie successfully removed from favourites"
+                    errorMessage = "Can't remove movie from favourites"
+                }
+                else {
+                    alertTitle = "Add to favourites"
+                    alertMessage = "Are you sure add \"\(movies[indexPath.row].title)\" to favourites ?"
+                    actionTitle = "Add"
+                    successMessage = "Movie successfully added to favourites"
+                    errorMessage = "Can't add movie to favourites"
+                }
+                
+                let alert = UIAlertController(title: alertTitle,
+                                              message: alertMessage,
                                               preferredStyle: .actionSheet)
-                alert.addAction(UIAlertAction(title: "Add", style: .default) {[weak self] _ in
+                
+                alert.addAction(UIAlertAction(title: actionTitle, style: .default) {[weak self] _ in
                     guard let movieId = self?.movies[indexPath.row].id,
                           let userId = UserDefaults.standard.value(forKey: "UserId") as? Int,
                           let self = self
                     else {
                         return
                     }
-                    ApiCaller.shared.addToFavourite(with: movieId, userId: userId, sessionDelegate: self) { result in
+                    
+                    ApiCaller.shared.addOrRemoveFromFavourite(with: movieId, userId: userId, add: !isFromProfile, sessionDelegate: self) { result in
                         if result {
-                            self.showMessage(alertTitle: "Success", message: "Movie successfully added to favourites", actionTitle: "OK")
+                            Haptics.shared.triggerNotificationFeedback(type: .success)
+                            self.showMessage(alertTitle: "Success", message: successMessage ?? "", actionTitle: "OK")
+                            if self.isFromProfile {
+                                self.movies.remove(at: indexPath.row)
+                                self.collectionView.reloadData()
+                                self.searchForMoviesButton.isHidden = self.movies.count != 0
+                            }
                         }
                         else {
-                            self.showMessage(alertTitle: "Error", message: "Can't add movie to favourites", actionTitle: "OK")
+                            Haptics.shared.triggerNotificationFeedback(type: .error)
+                            self.showMessage(alertTitle: "Error", message: errorMessage ?? "", actionTitle: "OK")
                         }
                     }
                 })
+                
                 alert.addAction(UIAlertAction(title: "Cancel", style: .destructive))
                 
                 if UIDevice.current.userInterfaceIdiom == .phone {
@@ -142,7 +211,6 @@ extension MoviesViewController {
             }
         }
     }
-    
 }
 
 //MARK: createing compositional layout
@@ -164,12 +232,12 @@ extension MoviesViewController {
     }
 }
 
-//MARK: get datas from api
+//MARK: get movies from api
 extension MoviesViewController {
     private func getMovies(completion: @escaping (Result<[Movie], Error>) -> Void) {
         DispatchQueue.main.async {
-            //MARK: get genres
             
+            //MARK: get genres
             ApiCaller.shared.getGenres(sessionDelegate: self) { [weak self] result in
                 switch result {
                 case .success(let data):
@@ -258,11 +326,6 @@ extension MoviesViewController {
     }
 }
 
-//MARK: gesture delegate
-extension MoviesViewController: UIGestureRecognizerDelegate {
-    
-}
-
 //MARK: collection view data source and delegate
 extension MoviesViewController: UICollectionViewDelegate, UICollectionViewDataSource {
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
@@ -292,7 +355,7 @@ extension MoviesViewController: UICollectionViewDelegate, UICollectionViewDataSo
     }
 }
 
-//MARK: handle how much scrolled
+//MARK: handle how much scrolled for pagination
 extension MoviesViewController: UIScrollViewDelegate {
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
         let verticalPercentage = scrollView.contentOffset.y / max(1, scrollView.contentSize.height - scrollView.bounds.size.height)

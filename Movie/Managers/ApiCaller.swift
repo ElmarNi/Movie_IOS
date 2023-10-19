@@ -180,7 +180,7 @@ final class ApiCaller {
         }
     }
     
-    public func addToFavourite(with movieId: Int, userId: Int,sessionDelegate: URLSessionDelegate, completion: @escaping (Bool) -> Void)
+    public func addOrRemoveFromFavourite(with movieId: Int, userId: Int, add: Bool, sessionDelegate: URLSessionDelegate, completion: @escaping (Bool) -> Void)
     {
         createRequest(with: URL(string: "https://api.themoviedb.org/3/account/\(userId)/favorite"), type: .POST) { baseRequest in
             
@@ -188,7 +188,7 @@ final class ApiCaller {
             let parameters: [String: Any] = [
                 "media_type": "movie",
                 "media_id": movieId,
-                "favorite": true
+                "favorite": add
             ]
             
             request.addValue("application/json", forHTTPHeaderField: "Content-Type")

@@ -9,10 +9,9 @@ import UIKit
 import SnapKit
 
 class MovieViewController: UIViewController {
-
+    //MARK: Properties
     private let movie: Movie
     private var genres: [Genre]
-    
     private let scrollView = UIScrollView()
     
     private let titleLabel: UILabel = {
@@ -51,6 +50,7 @@ class MovieViewController: UIViewController {
         return sv
     }()
     
+    //MARK: Initialization
     init(movie: Movie, genres: [Genre]) {
         self.movie = movie
         self.genres = genres
@@ -72,11 +72,14 @@ class MovieViewController: UIViewController {
         scrollView.addSubview(genresStackView)
         scrollView.addSubview(overviewLabel)
         configure()
-        configureView()
+        setupUI()
     }
     
-    private func configureView() {
-        scrollView.frame = view.bounds
+    //MARK: set up UI elements and constraints
+    private func setupUI() {
+        scrollView.snp.makeConstraints { make in
+            make.left.top.width.height.equalToSuperview()
+        }
         
         coverImageView.snp.makeConstraints { make in
             make.left.equalToSuperview().offset(10)
@@ -109,6 +112,7 @@ class MovieViewController: UIViewController {
         }
     }
     
+    //MARK: Configure data for UI elements and create genres view
     private func configure() {
         guard let url = URL(string: "http://image.tmdb.org/t/p/w400/\(movie.backdrop_path ?? "")") else { return }
         coverImageView.download(from: url, sessionDelegate: self, completion: {[weak self] in
@@ -119,7 +123,6 @@ class MovieViewController: UIViewController {
         overviewLabel.text = movie.overview
         genres.enumerated().forEach { (index, genre) in
             if index < 3 {
-                
                 let genreButton = UIButton()
                 genreButton.backgroundColor = UIColor(red: 237.0 / 255.0, green:  17.0 / 255.0, blue: 95.0 / 255.0, alpha: 1.00)
                 genreButton.layer.cornerRadius = 6

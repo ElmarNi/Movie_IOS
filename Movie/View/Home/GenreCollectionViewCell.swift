@@ -26,10 +26,11 @@ class GenreCollectionViewCell: UICollectionViewCell {
         contentView.clipsToBounds = false
         contentView.layer.masksToBounds = false
         addSubview(genreName)
-        configureView()
+        setupUI()
     }
     
-    private func configureView() {
+    //MARK: set up UI elements and constraints
+    private func setupUI() {
         genreName.snp.makeConstraints { make in
             make.top.equalToSuperview().inset(5)
             make.left.equalToSuperview().inset(5)

@@ -21,6 +21,7 @@
 		EBC5E5DA2ACEE06B000FF4EE /* Movie.swift in Sources */ = {isa = PBXBuildFile; fileRef = EBC5E5D92ACEE06A000FF4EE /* Movie.swift */; };
 		EBC5E5DC2ACEE123000FF4EE /* UpcomingMovie.swift in Sources */ = {isa = PBXBuildFile; fileRef = EBC5E5DB2ACEE123000FF4EE /* UpcomingMovie.swift */; };
 		EBC5E5DE2ACEE36E000FF4EE /* CommonMovie.swift in Sources */ = {isa = PBXBuildFile; fileRef = EBC5E5DD2ACEE36E000FF4EE /* CommonMovie.swift */; };
+		EBCB47F62AE05F9B00EC642F /* Haptics.swift in Sources */ = {isa = PBXBuildFile; fileRef = EBCB47F52AE05F9B00EC642F /* Haptics.swift */; };
 		EBD448F92AD43CB60095A772 /* MoviesViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = EBD448F82AD43CB60095A772 /* MoviesViewController.swift */; };
 		EBD448FD2AD443DC0095A772 /* MovieCollectionViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = EBD448FC2AD443DC0095A772 /* MovieCollectionViewCell.swift */; };
 		EBFE78E02ACC130D004E7E29 /* TabBarController.swift in Sources */ = {isa = PBXBuildFile; fileRef = EBFE78DF2ACC130D004E7E29 /* TabBarController.swift */; };
@@ -51,6 +52,7 @@
 		EBC5E5D92ACEE06A000FF4EE /* Movie.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Movie.swift; sourceTree = "<group>"; };
 		EBC5E5DB2ACEE123000FF4EE /* UpcomingMovie.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpcomingMovie.swift; sourceTree = "<group>"; };
 		EBC5E5DD2ACEE36E000FF4EE /* CommonMovie.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommonMovie.swift; sourceTree = "<group>"; };
+		EBCB47F52AE05F9B00EC642F /* Haptics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Haptics.swift; sourceTree = "<group>"; };
 		EBD448F82AD43CB60095A772 /* MoviesViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoviesViewController.swift; sourceTree = "<group>"; };
 		EBD448FC2AD443DC0095A772 /* MovieCollectionViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MovieCollectionViewCell.swift; sourceTree = "<group>"; };
 		EBFE78DF2ACC130D004E7E29 /* TabBarController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TabBarController.swift; sourceTree = "<group>"; };
@@ -192,6 +194,7 @@
 			isa = PBXGroup;
 			children = (
 				EBFE78E72ACC2D25004E7E29 /* ApiCaller.swift */,
+				EBCB47F52AE05F9B00EC642F /* Haptics.swift */,
 			);
 			path = Managers;
 			sourceTree = "<group>";
@@ -341,6 +344,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				EBCB47F62AE05F9B00EC642F /* Haptics.swift in Sources */,
 				EBC5E5DA2ACEE06B000FF4EE /* Movie.swift in Sources */,
 				EBFE78EC2ACC3E57004E7E29 /* GenreCollectionViewCell.swift in Sources */,
 				EBC5E5DC2ACEE123000FF4EE /* UpcomingMovie.swift in Sources */,

@@ -9,9 +9,10 @@ import UIKit
 import SnapKit
 
 class SearchViewController: UIViewController {
+    //MARK: Properties
     private var genres = [Genre]()
     
-    let spinner: UIActivityIndicatorView = {
+    private let spinner: UIActivityIndicatorView = {
         let spinner = UIActivityIndicatorView()
         spinner.startAnimating()
         spinner.hidesWhenStopped = true
@@ -46,24 +47,31 @@ class SearchViewController: UIViewController {
         searchController.searchBar.delegate = self
         definesPresentationContext = true
         
-        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(hideKeyboard))
-        tapGesture.cancelsTouchesInView = false
-        view.addGestureRecognizer(tapGesture)
-        
         collectionView.delegate = self
         collectionView.dataSource = self
         view.addSubview(collectionView)
         view.addSubview(spinner)
         
-        getData()
-        configureView()
+        getGenres()
+        setupUI()
+        addTapGesture()
     }
     
-    private func configureView() {
-        collectionView.frame = view.bounds
+    //MARK: set up UI elements and constraints
+    private func setupUI() {
+        collectionView.snp.makeConstraints { make in
+            make.left.top.width.height.equalToSuperview()
+        }
         spinner.snp.makeConstraints { make in
             make.center.equalToSuperview()
         }
+    }
+    
+    //MARK: tap gesture when tapped outside of search bar
+    private func addTapGesture() {
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(hideKeyboard))
+        tapGesture.cancelsTouchesInView = false
+        view.addGestureRecognizer(tapGesture)
     }
     
     @objc private func hideKeyboard() {
@@ -129,7 +137,7 @@ extension SearchViewController {
 
 //MARK: get genres data
 extension SearchViewController {
-    private func getData() {
+    private func getGenres() {
         ApiCaller.shared.getGenres(sessionDelegate: self) { [weak self] result in
             switch result {
             case .success(let data):
@@ -137,7 +145,8 @@ extension SearchViewController {
                 self?.collectionView.reloadData()
                 self?.spinner.stopAnimating()
             case .failure(_):
-                self?.showMessage(alertTitle: "Error", message: "Can't get genres", actionTitle: "OK")
+                Haptics.shared.triggerNotificationFeedback(type: .error)
+                self?.showMessage(alertTitle: "Error", message: "No results", actionTitle: "OK")
                 self?.spinner.stopAnimating()
             }
         }

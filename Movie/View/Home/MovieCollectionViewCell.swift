@@ -9,17 +9,15 @@ import UIKit
 import SnapKit
 
 class MovieCollectionViewCell: UICollectionViewCell {
-    static let identifier = "MovieCollectionViewCell"
     
+    static let identifier = "MovieCollectionViewCell"
     private let coverImage: UIImageView = {
         let imageView = UIImageView()
-        imageView.contentMode = .scaleToFill
-        imageView.layer.cornerRadius = 4
-        imageView.clipsToBounds = true
+        imageView.contentMode = .scaleAspectFill
         return imageView
     }()
     
-    let spinner: UIActivityIndicatorView = {
+    private let spinner: UIActivityIndicatorView = {
         let spinner = UIActivityIndicatorView()
         spinner.startAnimating()
         spinner.hidesWhenStopped = true
@@ -30,11 +28,16 @@ class MovieCollectionViewCell: UICollectionViewCell {
         super.init(frame: frame)
         contentView.addSubview(coverImage)
         contentView.addSubview(spinner)
-        configureView()
+        contentView.clipsToBounds = true
+        contentView.layer.cornerRadius = 4
+        setupUI()
     }
     
-    private func configureView() {
-        coverImage.frame = contentView.bounds
+    //MARK: set up UI elements and constraints
+    private func setupUI() {
+        coverImage.snp.makeConstraints { make in
+            make.left.top.width.height.equalToSuperview()
+        }
         spinner.snp.makeConstraints { make in
             make.center.equalToSuperview()
         }

@@ -39,10 +39,11 @@ class TopRatedMovieCollectionViewCell: UICollectionViewCell {
         let label = UILabel()
         label.font = .systemFont(ofSize: 15, weight: .bold)
         label.numberOfLines = 0
+        label.textColor = .black
         return label
     }()
     
-    let spinner: UIActivityIndicatorView = {
+    private let spinner: UIActivityIndicatorView = {
         let spinner = UIActivityIndicatorView()
         spinner.startAnimating()
         spinner.hidesWhenStopped = true
@@ -60,14 +61,15 @@ class TopRatedMovieCollectionViewCell: UICollectionViewCell {
         contentView.layer.borderColor = UIColor(red: 200/255, green: 8/255, blue: 81/255, alpha: 1.0).cgColor
         contentView.layer.cornerRadius = 6
         contentView.backgroundColor = UIColor(red: 255/255, green: 226/255, blue: 233/255, alpha: 1.0)
-        configureView()
+        setupUI()
     }
     
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
     
-    private func configureView() {
+    //MARK: set up UI elements and constraints
+    private func setupUI() {
         coverImageView.snp.makeConstraints { make in
             make.left.equalToSuperview().offset(10)
             make.top.equalToSuperview().offset(10)

@@ -43,7 +43,7 @@ class HomeViewController: UIViewController {
         return collectionView
     }()
     
-    let spinner: UIActivityIndicatorView = {
+    private let spinner: UIActivityIndicatorView = {
         let spinner = UIActivityIndicatorView()
         spinner.startAnimating()
         spinner.hidesWhenStopped = true
@@ -59,15 +59,28 @@ class HomeViewController: UIViewController {
         view.backgroundColor = .systemBackground
         view.addSubview(collectionView)
         view.addSubview(spinner)
-        configureView()
+        setupUI()
+        addLongPressGesture()
     }
     
-    private func configureView() {
-        collectionView.frame = view.bounds
+    //MARK: set up UI elements and constraints
+    private func setupUI() {
+        collectionView.snp.makeConstraints { make in
+            make.left.top.width.height.equalToSuperview()
+        }
         spinner.snp.makeConstraints { make in
             make.center.equalToSuperview()
         }
     }
+    
+    //MARK: add long press
+    private func addLongPressGesture() {
+        let longPressGesture = UILongPressGestureRecognizer(target: self, action: #selector(handleLongPress))
+        longPressGesture.minimumPressDuration = 0.5
+        longPressGesture.delegate = self
+        collectionView.addGestureRecognizer(longPressGesture)
+    }
+    
 }
 
 //MARK: creating compositional layout
@@ -157,7 +170,7 @@ extension HomeViewController {
             item.contentInsets = NSDirectionalEdgeInsets(top: 5, leading: 5, bottom: 5, trailing: 5)
             
             //group
-            let group = NSCollectionLayoutGroup.horizontal(layoutSize: NSCollectionLayoutSize(widthDimension: .fractionalWidth(1),
+            let group = NSCollectionLayoutGroup.vertical(layoutSize: NSCollectionLayoutSize(widthDimension: .fractionalWidth(1),
                                                                                               heightDimension: .absolute(120)),
                                                            subitems: [item])
             
@@ -179,7 +192,7 @@ extension HomeViewController {
     }
 }
 
-//MARK: get datas from api's
+//MARK: get datas from apis
 extension HomeViewController {
     private func configureSectionsData() {
         let dispatchGroup = DispatchGroup()
@@ -201,6 +214,7 @@ extension HomeViewController {
             case .success(let data):
                 genres = data.genres
             case .failure(_):
+                Haptics.shared.triggerNotificationFeedback(type: .error)
                 self?.showMessage(alertTitle: "Error", message: "Can't get genres", actionTitle: "OK")
             }
         }
@@ -213,6 +227,7 @@ extension HomeViewController {
             case .success(let data):
                 upcomingMovies = data.results
             case .failure(_):
+                Haptics.shared.triggerNotificationFeedback(type: .error)
                 self?.showMessage(alertTitle: "Error", message: "Can't get upcoming movies", actionTitle: "OK")
             }
         }
@@ -225,6 +240,7 @@ extension HomeViewController {
             case .success(let data):
                 popularMovies = data.results
             case .failure(_):
+                Haptics.shared.triggerNotificationFeedback(type: .error)
                 self?.showMessage(alertTitle: "Error", message: "Can't get popular movies", actionTitle: "OK")
             }
         }
@@ -237,6 +253,7 @@ extension HomeViewController {
             case .success(let data):
                 topRatedMovies = data.results
             case .failure(_):
+                Haptics.shared.triggerNotificationFeedback(type: .error)
                 self?.showMessage(alertTitle: "Error", message: "Can't get top rated movies", actionTitle: "OK")
             }
         }
@@ -309,8 +326,6 @@ extension HomeViewController: UICollectionViewDataSource, UICollectionViewDelega
             cell.configure(movie: movies[indexPath.row])
             return cell
         }
-        
-        return UICollectionViewCell()
     }
     
     func numberOfSections(in collectionView: UICollectionView) -> Int {
@@ -369,10 +384,73 @@ extension HomeViewController: UICollectionViewDataSource, UICollectionViewDelega
     }
 }
 
+//MARK: handle see all button click in headers by section
 extension HomeViewController: ForHeaderCollectionReusableViewDelegate {
     func seeAllButtonTapped(section: Section) {
         let moviesVC = MoviesViewController(section: section)
         moviesVC.title = section.title
         navigationController?.pushViewController(moviesVC, animated: true)
+        Haptics.shared.triggerSelectionFeedback()
+    }
+}
+
+//MARK: handle long press gesture, long press gesture delegate
+extension HomeViewController: UIGestureRecognizerDelegate {
+    @objc func handleLongPress(sender: UILongPressGestureRecognizer) {
+        if sender.state == .began && UserDefaults.standard.value(forKey: "UserId") != nil
+        {
+            Haptics.shared.triggerImpactFeedback()
+            let touchPoint = sender.location(in: collectionView)
+            if let indexPath = collectionView.indexPathForItem(at: touchPoint) {
+                var movie: Movie?
+                switch sections[indexPath.section] {
+                case .UpcomingMovies(let movies):
+                    movie = movies[indexPath.row]
+                case .PopularMovies(let movies):
+                    movie = movies[indexPath.row]
+                case .TopRatedMovies(let movies):
+                    movie = movies[indexPath.row]
+                default: break
+                }
+                
+                guard let movie = movie else { return }
+                let alert = UIAlertController(title: "Add to favourite",
+                                              message: "Are you sure add \"\(movie.title)\" to favourites ?",
+                                              preferredStyle: .actionSheet)
+                alert.addAction(UIAlertAction(title: "Add", style: .default) {[weak self] _ in
+                    guard let userId = UserDefaults.standard.value(forKey: "UserId") as? Int,
+                          let self = self
+                    else {
+                        return
+                    }
+
+                    ApiCaller.shared.addOrRemoveFromFavourite(with: movie.id, userId: userId, add: true, sessionDelegate: self) { result in
+                        if result {
+                            Haptics.shared.triggerNotificationFeedback(type: .success)
+                            self.showMessage(alertTitle: "Success", message: "Movie successfully added to favourites", actionTitle: "OK")
+                        }
+                        else {
+                            Haptics.shared.triggerNotificationFeedback(type: .error)
+                            self.showMessage(alertTitle: "Error", message: "Can't add movie to favourites", actionTitle: "OK")
+                        }
+                    }
+                })
+                alert.addAction(UIAlertAction(title: "Cancel", style: .destructive))
+                
+                if UIDevice.current.userInterfaceIdiom == .phone {
+                    present(alert, animated: true)
+                }
+                else {
+                    if let popoverController = alert.popoverPresentationController {
+                        popoverController.sourceView = self.view
+                        popoverController.sourceRect = CGRect(x: self.view.bounds.midX, y: self.view.bounds.midY, width: 0, height: 0)
+                        popoverController.permittedArrowDirections = []
+                    }
+                    else {
+                        present(alert, animated: true)
+                    }
+                }
+            }
+        }
     }
 }
