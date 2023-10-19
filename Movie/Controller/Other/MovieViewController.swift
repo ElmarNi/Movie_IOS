@@ -7,12 +7,14 @@
 
 import UIKit
 import SnapKit
+import youtube_ios_player_helper
 
-class MovieViewController: UIViewController {
+class MovieViewController: UIViewController, YTPlayerViewDelegate {
     //MARK: Properties
     private let movie: Movie
     private var genres: [Genre]
     private let scrollView = UIScrollView()
+    private var url: URL?
     
     private let titleLabel: UILabel = {
         let label = UILabel()
@@ -28,27 +30,20 @@ class MovieViewController: UIViewController {
         return label
     }()
     
-    private let coverImageView: UIImageView = {
-        let imageView = UIImageView()
-        imageView.contentMode = .scaleAspectFill
-        imageView.clipsToBounds = true
-        imageView.layer.cornerRadius = 4
-        imageView.clipsToBounds = true
-        return imageView
+    private let genresStackView: UIStackView = {
+        let sv = UIStackView()
+        sv.alignment = .center
+        return sv
     }()
     
-    private let coverImageSpinner: UIActivityIndicatorView = {
+    private let spinner: UIActivityIndicatorView = {
         let spinner = UIActivityIndicatorView()
         spinner.startAnimating()
         spinner.hidesWhenStopped = true
         return spinner
     }()
     
-    private let genresStackView: UIStackView = {
-        let sv = UIStackView()
-        sv.alignment = .center
-        return sv
-    }()
+    private let playerView = YTPlayerView()
     
     //MARK: Initialization
     init(movie: Movie, genres: [Genre]) {
@@ -65,14 +60,17 @@ class MovieViewController: UIViewController {
         super.viewDidLoad()
         view.backgroundColor = .systemBackground
         title = movie.title
+        scrollView.isHidden = true
         view.addSubview(scrollView)
-        coverImageView.addSubview(coverImageSpinner)
-        scrollView.addSubview(coverImageView)
+        scrollView.addSubview(playerView)
+        playerView.delegate = self
         scrollView.addSubview(titleLabel)
         scrollView.addSubview(genresStackView)
         scrollView.addSubview(overviewLabel)
+        view.addSubview(spinner)
         configure()
         setupUI()
+        getTrailer()
     }
     
     //MARK: set up UI elements and constraints
@@ -81,44 +79,55 @@ class MovieViewController: UIViewController {
             make.left.top.width.height.equalToSuperview()
         }
         
-        coverImageView.snp.makeConstraints { make in
-            make.left.equalToSuperview().offset(10)
-            make.width.equalToSuperview().inset(10)
-            make.top.equalToSuperview().offset(20)
-            make.height.equalTo(250)
-        }
-        
-        coverImageSpinner.snp.makeConstraints { make in
+        spinner.snp.makeConstraints { make in
             make.center.equalToSuperview()
         }
         
+        playerView.snp.makeConstraints { make in
+            make.left.width.top.equalToSuperview()
+            make.height.equalTo(250)
+        }
+        
         titleLabel.snp.makeConstraints { make in
-            make.left.equalToSuperview().offset(5)
-            make.width.equalToSuperview().inset(5)
-            make.top.equalTo(coverImageView.snp.bottom).offset(5)
+            make.left.equalToSuperview().offset(10)
+            make.width.equalToSuperview().inset(10)
+            make.top.equalTo(playerView.snp.bottom).offset(5)
         }
         
         genresStackView.snp.makeConstraints { make in
-            make.left.equalToSuperview()
-            make.width.equalToSuperview()
-            make.height.equalTo(35)
+            make.left.equalToSuperview().offset(5)
+            make.width.equalToSuperview().inset(5)
+            make.height.equalTo(30)
             make.top.equalTo(titleLabel.snp.bottom).offset(5)
         }
         
         overviewLabel.snp.makeConstraints { make in
-            make.left.equalToSuperview().offset(5)
-            make.width.equalToSuperview().inset(5)
+            make.left.equalToSuperview().offset(10)
+            make.width.equalToSuperview().inset(10)
             make.top.equalTo(genresStackView.snp.bottom).offset(5)
+        }
+    }
+    
+    //MARK: get movie trailer
+    private func getTrailer() {
+        DispatchQueue.main.async {
+            ApiCaller.shared.getMovieTrailer(with: self.movie.id, sessionDelegate: self) {[weak self] result in
+                switch result {
+                case .success(let key):
+                    self?.spinner.stopAnimating()
+                    self?.scrollView.isHidden = false
+                    self?.playerView.load(withVideoId: key)
+                case .failure(_):
+                    self?.showMessage(alertTitle: "Error", message: "Can't get movie trailer", actionTitle: "OK")
+                    self?.spinner.stopAnimating()
+                    self?.scrollView.isHidden = false
+                }
+            }
         }
     }
     
     //MARK: Configure data for UI elements and create genres view
     private func configure() {
-        guard let url = URL(string: "http://image.tmdb.org/t/p/w400/\(movie.backdrop_path ?? "")") else { return }
-        coverImageView.download(from: url, sessionDelegate: self, completion: {[weak self] in
-            self?.coverImageSpinner.stopAnimating()
-        })
-        
         titleLabel.text = movie.title
         overviewLabel.text = movie.overview
         genres.enumerated().forEach { (index, genre) in
@@ -137,7 +146,7 @@ class MovieViewController: UIViewController {
                 genreButton.frame = CGRect(x: (view.width / 3 * CGFloat(index)) + 5,
                                            y: 0,
                                            width: view.width / 3 - 10,
-                                           height: 35)
+                                           height: 30)
                 genreButton.addTarget(self, action: #selector(genreButtonTapped(_:)), for: .touchUpInside)
                 genresStackView.addSubview(genreButton)
             }

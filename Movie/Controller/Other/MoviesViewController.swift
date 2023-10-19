@@ -102,8 +102,10 @@ class MoviesViewController: UIViewController {
             }
             self?.spinner.stopAnimating()
         }
+        
         setupUI()
         addLongPressGesture()
+        addSwipeUpGesture()
         searchForMoviesButton.addTarget(self, action: #selector(searchForMoviesButtonTapped), for: .touchUpInside)
     }
     
@@ -128,11 +130,43 @@ class MoviesViewController: UIViewController {
         collectionView.addGestureRecognizer(longPressGesture)
     }
     
+    //MARK: add swipe up gesture for refresinh data
+    private func addSwipeUpGesture() {
+        if isFromProfile {
+            let swipeUp = UISwipeGestureRecognizer(target: self, action: #selector(handleSwipeUp(_:)))
+            swipeUp.direction = .down
+            swipeUp.delegate = self
+            collectionView.addGestureRecognizer(swipeUp)
+        }
+    }
+    
     //MARK: change navigation controller when search movies button tapped
     @objc func searchForMoviesButtonTapped() {
         self.tabBarController?.selectedIndex = 1
     }
     
+    //MARK: handle swipe up gesture
+    @objc func handleSwipeUp(_ sender: UISwipeGestureRecognizer) {
+        if sender.direction == .down {
+            self.movies.removeAll()
+            self.collectionView.reloadData()
+            self.spinner.startAnimating()
+            
+            getMovies { [weak self] result in
+                switch result {
+                case .success(let movies):
+                    self?.movies = movies
+                    self?.searchForMoviesButton.isHidden = self?.movies.count != 0
+                    self?.collectionView.reloadData()
+                case .failure(_):
+                    Haptics.shared.triggerNotificationFeedback(type: .error)
+                    self?.showMessage(alertTitle: "Error", message: "Can't get movies", actionTitle: "OK")
+                }
+                self?.spinner.stopAnimating()
+            }
+        }
+    }
+
 }
 
 //MARK: handle long press
@@ -352,6 +386,10 @@ extension MoviesViewController: UICollectionViewDelegate, UICollectionViewDataSo
         
         let movieVC = MovieViewController(movie: movie, genres: movieGenres)
         navigationController?.pushViewController(movieVC, animated: true)
+    }
+    
+    func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool {
+        true
     }
 }
 

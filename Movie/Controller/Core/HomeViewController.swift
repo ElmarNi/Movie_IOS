@@ -96,7 +96,7 @@ extension HomeViewController {
             item.contentInsets = NSDirectionalEdgeInsets(top: 5, leading: 5, bottom: 5, trailing: 5)
             //group
             let group = NSCollectionLayoutGroup.horizontal(layoutSize: NSCollectionLayoutSize(widthDimension: .fractionalWidth(1/3),
-                                                                                              heightDimension: .absolute(50)),
+                                                                                              heightDimension: .absolute(40)),
                                                            subitems: [item])
             
             //section
@@ -114,8 +114,8 @@ extension HomeViewController {
             item.contentInsets = NSDirectionalEdgeInsets(top: 5, leading: 5, bottom: 5, trailing: 5)
             
             //group
-            let group = NSCollectionLayoutGroup.horizontal(layoutSize: NSCollectionLayoutSize(widthDimension: .fractionalWidth(0.8),
-                                                                                              heightDimension: .absolute(460)),
+            let group = NSCollectionLayoutGroup.horizontal(layoutSize: NSCollectionLayoutSize(widthDimension: .fractionalWidth(0.6),
+                                                                                              heightDimension: .absolute(320)),
                                                            subitems: [item])
             
             //section
@@ -142,7 +142,7 @@ extension HomeViewController {
             
             //group
             let group = NSCollectionLayoutGroup.horizontal(layoutSize: NSCollectionLayoutSize(widthDimension: .fractionalWidth(0.4),
-                                                                                              heightDimension: .absolute(250)),
+                                                                                              heightDimension: .absolute(210)),
                                                            subitems: [item])
             
             //section

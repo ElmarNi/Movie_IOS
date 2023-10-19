@@ -7,5 +7,6 @@ target 'Movie' do
 
   # Pods for Movie
 pod 'SnapKit'
+pod 'youtube-ios-player-helper'
 
 end

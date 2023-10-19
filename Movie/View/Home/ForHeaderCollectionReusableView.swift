@@ -28,7 +28,7 @@ class ForHeaderCollectionReusableView: UICollectionReusableView {
         let btn = UIButton()
         btn.setTitle("See all", for: .normal)
         btn.setTitleColor(UIColor(red: 1.00, green: 0.22, blue: 0.37, alpha: 1.00), for: .normal)
-        btn.titleLabel?.font = .systemFont(ofSize: 18, weight: .bold)
+        btn.titleLabel?.font = .systemFont(ofSize: 14, weight: .bold)
         return btn
     }()
     

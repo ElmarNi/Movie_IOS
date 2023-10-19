@@ -221,6 +221,45 @@ final class ApiCaller {
         }
     }
     
+    public func getMovieTrailer(with movieId: Int, sessionDelegate: URLSessionDelegate, completion: @escaping (Result<String, Error>) -> Void) {
+        createRequest(with: URL(string: "https://api.themoviedb.org/3/movie/\(movieId)/videos?language=en-US"), type: .GET) { request in
+            URLSession(
+                configuration: URLSessionConfiguration.default,
+                delegate: sessionDelegate,
+                delegateQueue: OperationQueue.main).dataTask(with: request)
+            { data, _, error in
+                if let data = data, error == nil {
+                    do{
+                        guard let json = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any],
+                              let results = json["results"] as? [[String: Any]]
+                        else {
+                            completion(.failure(NSError()))
+                            return
+                        }
+                        
+                        for result in results {
+                            if let site = result["site"] as? String,
+                               let type = result["type"] as? String,
+                               site == "YouTube", type == "Trailer",
+                               let key = result["key"] as? String
+                            {
+                                completion(.success(key))
+                                break
+                            }
+                        }
+                        
+                    }
+                    catch {
+                        completion(.failure(NSError()))
+                    }
+                }
+                else {
+                    completion(.failure(NSError()))
+                }
+            }.resume()
+        }
+    }
+    
     public func getKey(sessionDelegate: URLSessionDelegate, completion: @escaping (Result<GetKey, Error>) -> Void)
     {
         createRequest(with: URL(string: "https://api.themoviedb.org/3//authentication/token/new"), type: .GET) { request in
