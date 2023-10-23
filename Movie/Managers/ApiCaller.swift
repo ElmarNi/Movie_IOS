@@ -26,154 +26,153 @@ final class ApiCaller {
                 delegate: sessionDelegate,
                 delegateQueue: OperationQueue.main).dataTask(with: request)
             { data, _, error in
-                if let data = data, error == nil {
-                    do{
-                        let genres = try JSONDecoder().decode(Genres.self, from: data)
-                        completion(.success(genres))
-                    }
-                    catch {
-                        completion(.failure(NSError()))
-                    }
+                
+                guard let data = data, error == nil else {
+                    completion(.failure(NSError()))
+                    return
                 }
-                else {
+                do{
+                    let genres = try JSONDecoder().decode(Genres.self, from: data)
+                    completion(.success(genres))
+                }
+                catch {
                     completion(.failure(NSError()))
                 }
             }.resume()
         }
     }
     
-    public func getUpcomingMovies(page: Int, sessionDelegate: URLSessionDelegate, completion: @escaping (Result<UpcomingMovie, Error>) -> Void) {
+    public func getUpcomingMovies(page: Int, sessionDelegate: URLSessionDelegate, completion: @escaping (Result<CommonMovieResponse, Error>) -> Void) {
         createRequest(with: URL(string: "https://api.themoviedb.org/3/movie/upcoming?page=\(page)"), type: .GET) { request in
             URLSession(
                 configuration: URLSessionConfiguration.default,
                 delegate: sessionDelegate,
                 delegateQueue: OperationQueue.main).dataTask(with: request)
             { data, _, error in
-                if let data = data, error == nil {
-                    do{
-                        let movies = try JSONDecoder().decode(UpcomingMovie.self, from: data)
-                        completion(.success(movies))
-                    }
-                    catch {
-                        completion(.failure(NSError()))
-                    }
+                guard let data = data, error == nil else {
+                    completion(.failure(NSError()))
+                    return
                 }
-                else {
+                do{
+                    let movies = try JSONDecoder().decode(CommonMovieResponse.self, from: data)
+                    completion(.success(movies))
+                }
+                catch {
                     completion(.failure(NSError()))
                 }
             }.resume()
         }
     }
     
-    public func getTopRatedMovies(page: Int, sessionDelegate: URLSessionDelegate, completion: @escaping (Result<CommonMovie, Error>) -> Void) {
+    public func getTopRatedMovies(page: Int, sessionDelegate: URLSessionDelegate, completion: @escaping (Result<CommonMovieResponse, Error>) -> Void) {
         createRequest(with: URL(string: "https://api.themoviedb.org/3/movie/top_rated?page=\(page)"), type: .GET) { request in
             URLSession(
                 configuration: URLSessionConfiguration.default,
                 delegate: sessionDelegate,
                 delegateQueue: OperationQueue.main).dataTask(with: request)
             { data, _, error in
-                if let data = data, error == nil {
-                    do{
-                        let movies = try JSONDecoder().decode(CommonMovie.self, from: data)
-                        completion(.success(movies))
-                    }
-                    catch {
-                        completion(.failure(NSError()))
-                    }
+                
+                guard let data = data, error == nil else {
+                    completion(.failure(NSError()))
+                    return
                 }
-                else {
+                do{
+                    let movies = try JSONDecoder().decode(CommonMovieResponse.self, from: data)
+                    completion(.success(movies))
+                }
+                catch {
                     completion(.failure(NSError()))
                 }
             }.resume()
         }
     }
     
-    public func getPopularMovies(page: Int, sessionDelegate: URLSessionDelegate, completion: @escaping (Result<CommonMovie, Error>) -> Void) {
+    public func getPopularMovies(page: Int, sessionDelegate: URLSessionDelegate, completion: @escaping (Result<CommonMovieResponse, Error>) -> Void) {
         createRequest(with: URL(string: "https://api.themoviedb.org/3/movie/popular?page=\(page)"), type: .GET) { request in
             URLSession(
                 configuration: URLSessionConfiguration.default,
                 delegate: sessionDelegate,
                 delegateQueue: OperationQueue.main).dataTask(with: request)
             { data, _, error in
-                if let data = data, error == nil {
-                    do{
-                        let movies = try JSONDecoder().decode(CommonMovie.self, from: data)
-                        completion(.success(movies))
-                    }
-                    catch {
-                        completion(.failure(NSError()))
-                    }
+                
+                guard let data = data, error == nil else {
+                    completion(.failure(NSError()))
+                    return
                 }
-                else {
+                do{
+                    let movies = try JSONDecoder().decode(CommonMovieResponse.self, from: data)
+                    completion(.success(movies))
+                }
+                catch {
                     completion(.failure(NSError()))
                 }
             }.resume()
         }
     }
     
-    public func getMoviesByGenreId(with genreId: Int, page: Int, sessionDelegate: URLSessionDelegate, completion: @escaping (Result<CommonMovie, Error>) -> Void) {
+    public func getMoviesByGenreId(with genreId: Int, page: Int, sessionDelegate: URLSessionDelegate, completion: @escaping (Result<CommonMovieResponse, Error>) -> Void) {
         createRequest(with: URL(string: "https://api.themoviedb.org/3/discover/movie?include_adult=false&include_video=false&page=\(page)&sort_by=popularity.desc&with_genres=\(genreId)"), type: .GET) { request in
             URLSession(
                 configuration: URLSessionConfiguration.default,
                 delegate: sessionDelegate,
                 delegateQueue: OperationQueue.main).dataTask(with: request)
             { data, _, error in
-                if let data = data, error == nil {
-                    do{
-                        let movies = try JSONDecoder().decode(CommonMovie.self, from: data)
-                        completion(.success(movies))
-                    }
-                    catch {
-                        completion(.failure(NSError()))
-                    }
+                
+                guard let data = data, error == nil else {
+                    completion(.failure(NSError()))
+                    return
                 }
-                else {
+                do{
+                    let movies = try JSONDecoder().decode(CommonMovieResponse.self, from: data)
+                    completion(.success(movies))
+                }
+                catch {
                     completion(.failure(NSError()))
                 }
             }.resume()
         }
     }
     
-    public func getMoviesByName(with name: String, page: Int, sessionDelegate: URLSessionDelegate, completion: @escaping (Result<CommonMovie, Error>) -> Void) {
+    public func getMoviesByName(with name: String, page: Int, sessionDelegate: URLSessionDelegate, completion: @escaping (Result<CommonMovieResponse, Error>) -> Void) {
         createRequest(with: URL(string: "https://api.themoviedb.org/3/search/movie?query=\(name)&page=\(page)"), type: .GET) { request in
             URLSession(
                 configuration: URLSessionConfiguration.default,
                 delegate: sessionDelegate,
                 delegateQueue: OperationQueue.main).dataTask(with: request)
             { data, _, error in
-                if let data = data, error == nil {
-                    do{
-                        let movies = try JSONDecoder().decode(CommonMovie.self, from: data)
-                        completion(.success(movies))
-                    }
-                    catch {
-                        completion(.failure(NSError()))
-                    }
+                
+                guard let data = data, error == nil else {
+                    completion(.failure(NSError()))
+                    return
                 }
-                else {
+                do{
+                    let movies = try JSONDecoder().decode(CommonMovieResponse.self, from: data)
+                    completion(.success(movies))
+                }
+                catch {
                     completion(.failure(NSError()))
                 }
             }.resume()
         }
     }
     
-    public func getMoviesByUserId(with userId: Int, page: Int, sessionDelegate: URLSessionDelegate, completion: @escaping (Result<CommonMovie, Error>) -> Void) {
+    public func getMoviesByUserId(with userId: Int, page: Int, sessionDelegate: URLSessionDelegate, completion: @escaping (Result<CommonMovieResponse, Error>) -> Void) {
         createRequest(with: URL(string: "https://api.themoviedb.org/3/account/\(userId)/favorite/movies?page=\(page)&sort_by=created_at.asc"), type: .GET) { request in
             URLSession(
                 configuration: URLSessionConfiguration.default,
                 delegate: sessionDelegate,
                 delegateQueue: OperationQueue.main).dataTask(with: request)
             { data, _, error in
-                if let data = data, error == nil {
-                    do{
-                        let movies = try JSONDecoder().decode(CommonMovie.self, from: data)
-                        completion(.success(movies))
-                    }
-                    catch {
-                        completion(.failure(NSError()))
-                    }
+                
+                guard let data = data, error == nil else {
+                    completion(.failure(NSError()))
+                    return
                 }
-                else {
+                do{
+                    let movies = try JSONDecoder().decode(CommonMovieResponse.self, from: data)
+                    completion(.success(movies))
+                }
+                catch {
                     completion(.failure(NSError()))
                 }
             }.resume()
@@ -198,23 +197,23 @@ final class ApiCaller {
                 delegate: sessionDelegate,
                 delegateQueue: OperationQueue.main).dataTask(with: request)
             { data, _, error in
-                if let data = data, error == nil {
-                    do {
-                        if let json = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any],
-                           let success = json["success"] as? Int,
-                           success == 1
-                        {
-                            completion(true)
-                        }
-                        else {
-                            completion(false)
-                        }
+                
+                guard let data = data, error == nil else {
+                    completion(false)
+                    return
+                }
+                do {
+                    if let json = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any],
+                       let success = json["success"] as? Int,
+                       success == 1
+                    {
+                        completion(true)
                     }
-                    catch {
+                    else {
                         completion(false)
                     }
                 }
-                else {
+                catch {
                     completion(false)
                 }
             }.resume()
@@ -228,39 +227,61 @@ final class ApiCaller {
                 delegate: sessionDelegate,
                 delegateQueue: OperationQueue.main).dataTask(with: request)
             { data, _, error in
-                if let data = data, error == nil {
-                    do{
-                        guard let json = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any],
-                              let results = json["results"] as? [[String: Any]]
-                        else {
-                            completion(.failure(NSError()))
-                            return
-                        }
-                        
-                        for result in results {
-                            if let site = result["site"] as? String,
-                               let type = result["type"] as? String,
-                               site == "YouTube", type == "Trailer",
-                               let key = result["key"] as? String
-                            {
-                                completion(.success(key))
-                                break
-                            }
-                        }
-                        
-                    }
-                    catch {
+                
+                guard let data = data, error == nil else {
+                    completion(.failure(NSError()))
+                    return
+                }
+                do{
+                    guard let json = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any],
+                          let results = json["results"] as? [[String: Any]]
+                    else {
                         completion(.failure(NSError()))
+                        return
+                    }
+                    
+                    for result in results {
+                        if let site = result["site"] as? String,
+                           let type = result["type"] as? String,
+                           site == "YouTube", type == "Trailer",
+                           let key = result["key"] as? String
+                        {
+                            completion(.success(key))
+                            break
+                        }
                     }
                 }
-                else {
+                catch {
                     completion(.failure(NSError()))
                 }
             }.resume()
         }
     }
     
-    public func getKey(sessionDelegate: URLSessionDelegate, completion: @escaping (Result<GetKey, Error>) -> Void)
+    public func getMovieReviewsById(with movieId: Int, sessionDelegate: URLSessionDelegate, completion: @escaping (Result<ReviewResponse, Error>) -> Void) {
+        createRequest(with: URL(string: "https://api.themoviedb.org/3/movie/\(movieId)/reviews"), type: .GET) { request in
+            URLSession(
+                configuration: URLSessionConfiguration.default,
+                delegate: sessionDelegate,
+                delegateQueue: OperationQueue.main).dataTask(with: request)
+            { data, _, error in
+                
+                guard let data = data, error == nil else {
+                    completion(.failure(NSError()))
+                    return
+                }
+                do{
+                    let reviews = try JSONDecoder().decode(ReviewResponse.self, from: data)
+                    completion(.success(reviews))
+                }
+                catch {
+                    completion(.failure(NSError()))
+                }
+            }.resume()
+        }
+    }
+    
+    public func getKey(sessionDelegate: URLSessionDelegate, completion: @escaping (Result<String, Error>) -> Void)
     {
         createRequest(with: URL(string: "https://api.themoviedb.org/3//authentication/token/new"), type: .GET) { request in
             URLSession(
@@ -268,16 +289,21 @@ final class ApiCaller {
                 delegate: sessionDelegate,
                 delegateQueue: OperationQueue.main).dataTask(with: request)
             { data, _, error in
-                if let data = data, error == nil {
-                    do{
-                        let key = try JSONDecoder().decode(GetKey.self, from: data)
-                        completion(.success(key))
-                    }
-                    catch {
-                        completion(.failure(NSError()))
-                    }
+                
+                guard let data = data, error == nil else {
+                    completion(.failure(NSError()))
+                    return
                 }
-                else {
+                do{
+                    guard let json = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any],
+                          let request_token = json["request_token"] as? String
+                    else {
+                        completion(.failure(NSError()))
+                        return
+                    }
+                    completion(.success(request_token))
+                }
+                catch {
                     completion(.failure(NSError()))
                 }
             }.resume()
@@ -285,7 +311,7 @@ final class ApiCaller {
     }
     
     public func authenticate(username: String, password: String, apiKey: String, sessionDelegate: URLSessionDelegate,
-                             completion: @escaping (Result<GetKey, Error>) -> Void)
+                             completion: @escaping (Result<String, Error>) -> Void)
     {
         createRequest(with: URL(string: "https://api.themoviedb.org/3/authentication/token/validate_with_login"), type: .POST) { baseRequest in
             
@@ -303,23 +329,28 @@ final class ApiCaller {
                 delegate: sessionDelegate,
                 delegateQueue: OperationQueue.main).dataTask(with: request)
             { data, _, error in
-                if let data = data, error == nil {
-                    do {
-                        let key = try JSONDecoder().decode(GetKey.self, from: data)
-                        completion(.success(key))
-                    }
-                    catch {
-                        completion(.failure(NSError()))
-                    }
+                
+                guard let data = data, error == nil else {
+                    completion(.failure(NSError()))
+                    return
                 }
-                else {
+                do {
+                    guard let json = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any],
+                          let request_token = json["request_token"] as? String
+                    else {
+                        completion(.failure(NSError()))
+                        return
+                    }
+                    completion(.success(request_token))
+                }
+                catch {
                     completion(.failure(NSError()))
                 }
             }.resume()
         }
     }
     
-    public func fetchUserData(apiKey: String, sessionDelegate: URLSessionDelegate, completion: @escaping (Result<User, Error>) -> Void)
+    public func fetchUserData(apiKey: String, sessionDelegate: URLSessionDelegate, completion: @escaping (Result<Bool, Error>) -> Void)
     {
         createRequest(with: URL(string: "https://api.themoviedb.org/3/account?api_key=\(apiKey)"), type: .GET) { request in
             URLSession(
@@ -327,18 +358,26 @@ final class ApiCaller {
                 delegate: sessionDelegate,
                 delegateQueue: OperationQueue.main).dataTask(with: request)
             { data, _, error in
-                if let data = data, error == nil {
-                    do{
-                        let user = try JSONDecoder().decode(User.self, from: data)
-                        UserDefaults.standard.setValue(user.id, forKey: "UserId")
-                        UserDefaults.standard.setValue(user.username, forKey: "UserName")
-                        completion(.success(user))
-                    }
-                    catch {
-                        completion(.failure(NSError()))
-                    }
+                
+                guard let data = data, error == nil else {
+                    completion(.failure(NSError()))
+                    return
                 }
-                else {
+                do{
+                    
+                    guard let json = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any],
+                          let userId = json["id"] as? Int,
+                          let userName = json["username"] as? String
+                    else {
+                        completion(.failure(NSError()))
+                        return
+                    }
+                    
+                    UserDefaults.standard.setValue(userId, forKey: "UserId")
+                    UserDefaults.standard.setValue(userName, forKey: "UserName")
+                    completion(.success(true))
+                }
+                catch {
                     completion(.failure(NSError()))
                 }
             }.resume()

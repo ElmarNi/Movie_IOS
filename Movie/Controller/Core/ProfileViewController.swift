@@ -95,12 +95,12 @@ class ProfileViewController: UIViewController {
             DispatchQueue.main.async {
                 ApiCaller.shared.getKey(sessionDelegate: self) {result in
                     switch result {
-                    case .success(let data):
-                        ApiCaller.shared.authenticate(username: userName, password: password, apiKey: data.request_token, sessionDelegate: self)
+                    case .success(let request_token):
+                        ApiCaller.shared.authenticate(username: userName, password: password, apiKey: request_token, sessionDelegate: self)
                         { result in
                             switch result {
-                            case .success(let data):
-                                ApiCaller.shared.fetchUserData(apiKey: data.request_token, sessionDelegate: self) { result in
+                            case .success(let request_token):
+                                ApiCaller.shared.fetchUserData(apiKey: request_token, sessionDelegate: self) { result in
                                     switch result {
                                     case .success(_):
                                         Haptics.shared.triggerNotificationFeedback(type: .success)

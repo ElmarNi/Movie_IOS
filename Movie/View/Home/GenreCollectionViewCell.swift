@@ -32,10 +32,7 @@ class GenreCollectionViewCell: UICollectionViewCell {
     //MARK: set up UI elements and constraints
     private func setupUI() {
         genreName.snp.makeConstraints { make in
-            make.top.equalToSuperview().inset(5)
-            make.left.equalToSuperview().inset(5)
-            make.width.equalToSuperview().inset(5)
-            make.height.equalToSuperview().inset(5)
+            make.top.left.width.height.equalToSuperview().inset(5)
         }
     }
     
